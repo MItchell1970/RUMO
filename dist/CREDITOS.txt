@@ -1,0 +1,31 @@
+RUMO — TECNOLOGIA, FONTES E LICENÇAS
+
+Projeto académico de empregabilidade, desenvolvido com assistência de IA.
+A aplicação não tem afiliação às entidades indicadas abaixo.
+
+CONTEÚDO
+Europass — preparar um CV:
+https://europass.europa.eu/pt/create-europass-cv
+Europass — experiências e competências:
+https://europass.europa.eu/pt/what-type-information-should-i-include-my-europass-profile
+Os pesos da pontuação são uma escolha educativa do projeto Rumo, não uma escala validada por estas entidades.
+
+LEITURA DE PDF
+Mozilla PDF.js 5.6.205 — Apache License 2.0.
+https://mozilla.github.io/pdf.js/
+Licença: vendor/LICENSE-pdfjs.txt
+
+ORTOGRAFIA LOCAL
+Typo.js — Christopher Finke, Modified BSD.
+https://github.com/cfinke/Typo.js
+Licença: vendor/typo-LICENSE.txt
+Dicionário de português de Portugal — Projecto Natura / Universidade do Minho, distribuído por LibreOffice.
+https://github.com/LibreOffice/dictionaries/tree/67032ee957631908098a72edf48dc81cac27e369/pt_PT
+Os ficheiros do dicionário são redistribuídos sob GPL 2, com código-fonte e licença incluídos.
+Detalhes e versões fixadas: vendor/pt-PT-SOURCES.md
+Licenças: vendor/pt-PT-LICENSES.txt, vendor/pt-PT-README.txt e vendor/pt-PT-COPYING-GPL-2.txt
+
+LIMITES
+A ortografia é uma verificação assistida e a análise de apresentação usa medidas aproximadas do PDF.
+A gramática completa e o aspeto final dependem de revisão humana.
+Sem garantia de contratação, certificação ATS ou validação de qualificações.

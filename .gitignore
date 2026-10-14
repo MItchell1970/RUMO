@@ -1,0 +1,10 @@
+node_modules/
+.sites-runtime/
+*.tar
+*.log
+tests/screenshots/
+.openai/
+tests/*.png
+tests/*.jpg
+tests/qa-*.mjs
+playwright-report/

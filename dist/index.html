@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#203c35">
+  <meta name="description" content="Carrega o teu CV, recebe uma pontuação de preparação de 0 a 100 e descobre o que podes melhorar. Uma ferramenta gratuita, em português de Portugal.">
+  <meta property="og:title" content="Rumo — um CV com mais direção">
+  <meta property="og:description" content="Uma pontuação clara. Melhorias concretas. O próximo passo para o teu currículo.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="pt_PT">
+  <title>Rumo — um CV com mais direção</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<a class="skip" href="#avaliar">Saltar para a análise</a>
+<header class="header shell">
+  <a class="brand" href="#inicio" aria-label="Rumo, início"><img src="./favicon.svg" alt="" width="33" height="33">rumo<span>.</span></a>
+  <nav aria-label="Navegação principal"><a href="#como-funciona">Como funciona</a><a href="#projeto">O projeto</a></nav>
+  <a class="button small outline" href="#avaliar">Avaliar o meu CV <span aria-hidden="true">↗</span></a>
+</header>
+<main id="main">
+  <section class="hero shell" id="inicio" aria-labelledby="home-title">
+    <div class="hero-copy"><span class="eyebrow"><i></i> O TEU PRÓXIMO PASSO COMEÇA AQUI</span>
+      <h1 id="home-title">O teu CV.<br><em>Com mais rumo.</em></h1>
+      <p>Descobre o que já está bem e o que podes melhorar. Uma pontuação clara, sugestões concretas e um currículo mais preparado para a próxima oportunidade.</p>
+      <div class="hero-actions"><a href="#avaliar" class="button primary">Vamos melhorar o teu CV <span aria-hidden="true">↗</span></a><button type="button" class="text-button" id="demo-home">Experimentar um exemplo →</button></div>
+      <div class="hero-meta"><span>✓ Gratuito</span><span>✓ Sem registo</span><span>✓ O CV fica no teu navegador</span></div>
+    </div>
+    <div class="hero-art" role="img" aria-label="Exemplo ilustrativo: um currículo com 72 pontos e uma sugestão de melhoria.">
+      <div class="orbit"></div><span class="spark" aria-hidden="true">✳</span>
+      <div class="cv-paper"><span class="paper-label">O TEU CURRÍCULO</span><div class="paper-name">Há potencial<br>na tua história.</div><div class="paper-line"></div><div class="paper-line short"></div><div class="paper-rule"></div><span class="paper-label">FORMAÇÃO & PROJETOS</span><div class="paper-line"></div><div class="paper-line"></div><div class="paper-line shorter"></div><span class="paper-pill">Economia</span><span class="paper-pill">Análise de dados</span><div class="paper-footer">O primeiro passo é perceber o próximo. ↗</div></div>
+      <div class="score-note"><span>PREPARAÇÃO DO CV</span><b>72<small>/100</small></b><div class="note-track"><i></i></div><small>Exemplo ilustrativo</small></div>
+      <div class="improvement-note"><span class="note-arrow" aria-hidden="true">↗</span><div><b>Mostra o teu contributo.</b><span>Transforma tarefas em exemplos.</span></div></div>
+    </div>
+  </section>
+  <section class="steps shell" id="como-funciona" aria-label="Como funciona"><div><span>01</span><p><b>Carrega o teu CV</b>PDF, TXT ou texto colado.</p></div><div><span>02</span><p><b>Percebe a pontuação</b>De 0 a 100, com critérios à vista.</p></div><div><span>03</span><p><b>Melhora, ponto a ponto</b>Corrige e volta a analisar.</p></div></section>
+  <section class="workspace shell" id="avaliar" aria-labelledby="analysis-title">
+    <div class="section-heading"><div><span class="eyebrow">UMA SEGUNDA LEITURA. UM NOVO PONTO DE PARTIDA.</span><h2 id="analysis-title">Vamos dar mais força ao teu CV.</h2></div><span class="privacy-badge">◈ Análise no teu dispositivo</span></div>
+    <div class="cv-layout">
+      <form class="editor" id="cv-form" novalidate>
+        <div class="panel-heading"><h3>O teu currículo</h3><button class="text-button" id="use-example" type="button">Usar exemplo ↗</button></div>
+        <label for="cv-file" class="upload-zone"><span class="upload-icon" aria-hidden="true">↑</span><b>Carrega o teu CV</b><span>PDF com texto selecionável ou TXT · até 5 MB</span><span class="choose-file">Escolher ficheiro</span></label>
+        <input id="cv-file" class="visually-hidden" type="file" accept=".pdf,.txt,application/pdf,text/plain">
+        <p id="file-status" class="file-status" role="status"></p>
+        <details id="text-details" class="text-details"><summary>Ou cola o texto do currículo <span aria-hidden="true">+</span></summary><label for="cv-text" class="field-label">Texto do CV</label><textarea id="cv-text" rows="11" maxlength="30000" spellcheck="true" placeholder="Formação, projetos, experiências e competências…&#10;&#10;Mantém cada título de secção numa linha própria."></textarea><div class="input-meta"><span>Mínimo de 40 palavras</span><span id="word-count">0 palavras</span></div><p class="help" id="text-edit-note">Podes rever o texto aqui. As alterações não modificam o PDF original.</p></details>
+        <details class="job-details"><summary>Tens uma vaga em mente? <span>Opcional +</span></summary><label for="job-text" class="field-label">Descrição da oportunidade</label><textarea id="job-text" maxlength="12000" rows="4" placeholder="Cola os requisitos de um estágio ou emprego."></textarea><p class="help">Compara os termos da vaga com o teu texto. Não altera a pontuação.</p></details>
+        <p class="error" id="cv-error" role="alert" hidden></p>
+        <button type="submit" class="button primary full" id="analyze-button">Ver a minha pontuação <span aria-hidden="true">↗</span></button>
+        <p id="analysis-status" class="analysis-status" role="status"></p>
+        <p class="editor-note">O teu CV não sai deste navegador. Sem conta, sem guardar os teus dados.</p>
+      </form>
+      <div id="result-area" class="result-area">
+        <div id="empty-result" class="empty-result"><span class="empty-symbol" aria-hidden="true">↗</span><span class="eyebrow">CLAREZA PARA O TEU PRÓXIMO PASSO</span><h3>Não precisas de adivinhar<br>o que está a faltar.</h3><p>A Rumo analisa o conteúdo, procura possíveis erros de escrita e verifica sinais de apresentação no PDF.</p><ul><li><span>01</span> Uma pontuação de preparação.</li><li><span>02</span> O que melhorar e quantos pontos vale.</li><li><span>03</span> Um plano que podes levar contigo.</li></ul><small>100 significa cumprir esta lista de critérios.<br>Não significa ter emprego garantido.</small></div>
+        <div id="results" hidden></div>
+      </div>
+    </div>
+  </section>
+  <section class="about shell" id="projeto" aria-labelledby="about-title"><div><span class="eyebrow">UM PROJETO DE ECONOMIA. UM PROBLEMA REAL.</span><h2 id="about-title">Pequenas melhorias.<br><em>Mais confiança para avançar.</em></h2><p>A Rumo nasceu como um projeto de faculdade sobre empregabilidade. O objetivo é simples: ajudar quem se candidata a perceber como pode apresentar melhor o seu percurso — mesmo antes do primeiro emprego.</p></div><div class="faq"><details><summary>O que significa a pontuação?<span>+</span></summary><p>É um índice de preparação com nove critérios. Junta verificações automáticas e confirmações tuas. Cada melhoria mostra os pontos que faltam nesse critério. Podes consultar todos os pesos no resultado.</p><p>A pontuação não prevê contratação, não valida qualificações e não é uma certificação ATS.</p></details><details><summary>O que é analisado na escrita e no formato?<span>+</span></summary><p>Na escrita, um dicionário de português de Portugal assinala possíveis erros ortográficos e algumas regras procuram pontuação e repetições. Nomes e termos técnicos podem precisar da tua confirmação. A gramática completa e a qualidade do discurso exigem uma revisão humana.</p><p>Nos PDFs, verificamos o número de páginas e sinais de tamanho de letra. Estes são critérios orientadores para um primeiro CV. A organização visual final é confirmada por ti; texto colado não contém informação de tipos de letra.</p></details><details><summary>Os meus dados ficam guardados?<span>+</span></summary><p>Não. O texto é processado no navegador, sem ser enviado para uma API ou guardado numa conta. Ao recarregares ou fechares a página, o trabalho da sessão desaparece. Os relatórios que descarregares ficam no teu dispositivo.</p></details><details><summary>Onde posso aprender mais?<span>+</span></summary><p>O <a href="https://europass.europa.eu/pt/create-europass-cv" target="_blank" rel="noopener noreferrer">Europass</a> tem orientações para preparar o CV. Encontras também recursos de emprego e formação no <a href="https://www.iefp.pt/" target="_blank" rel="noopener noreferrer">IEFP</a>. A Rumo é um projeto independente.</p><p><a href="./CREDITOS.txt" target="_blank" rel="noopener noreferrer">Tecnologia, fontes e licenças ↗</a></p></details></div></section>
+</main>
+<footer class="footer shell"><a href="#inicio" class="brand">rumo<span>.</span></a><p>Um projeto académico. O teu próximo passo.</p><a href="#avaliar">Voltar ao currículo ↑</a></footer>
+<noscript><p class="shell">Ativa o JavaScript para usar o analisador da Rumo.</p></noscript>
+<script type="module" src="./app.js"></script>
+</body></html>
