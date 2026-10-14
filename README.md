@@ -1,5 +1,7 @@
 # Rumo — o teu CV, com mais rumo
 
+**[Experimentar o site](https://mitchell1970.github.io/RUMO/)** · [Testes e publicação](https://github.com/MItchell1970/RUMO/actions/workflows/pages.yml)
+
 Uma ferramenta gratuita para perceber o que melhorar num currículo, feita como projeto académico de Economia em português de Portugal.
 
 **Carregar → perceber a pontuação → melhorar.** Um único percurso, com critérios transparentes e sugestões concretas. A aplicação funciona inteiramente no navegador e pode ser publicada gratuitamente no GitHub Pages.
