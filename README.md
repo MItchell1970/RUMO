@@ -1,80 +1,93 @@
-# Rumo — o teu CV, com mais rumo
+# Rumo — o teu currículo, com mais rumo
 
 **[Experimentar o site](https://mitchell1970.github.io/RUMO/)** · [Testes e publicação](https://github.com/MItchell1970/RUMO/actions/workflows/pages.yml)
 
-Uma ferramenta gratuita para perceber o que melhorar num currículo, feita como projeto académico de Economia em português de Portugal.
+Uma ferramenta gratuita para perceber o que melhorar num currículo, rever o conteúdo e produzir um PDF claro. Projeto académico de Economia, em português de Portugal.
 
-**Carregar → perceber a pontuação → melhorar.** Um único percurso, com critérios transparentes e sugestões concretas. A aplicação funciona inteiramente no navegador e pode ser publicada gratuitamente no GitHub Pages.
+**Carregar → perceber → melhorar → descarregar.** A versão 3 reúne diagnóstico, editor e criação de PDF num único percurso. Funciona no navegador, sem conta ou envio do currículo para um servidor.
 
 ## O que faz
 
 - Importa PDF com texto selecionável ou TXT; também aceita texto colado.
-- Dá uma pontuação de preparação de **0 a 100**, discriminada em nove critérios.
-- Mostra as melhorias por prioridade e os pontos que cada uma permite recuperar.
-- Procura possíveis erros ortográficos com um dicionário PT-PT e verifica repetições e sinais básicos de pontuação.
-- Permite aplicar sugestões de escrita ou confirmar que um termo está correto.
-- Estima o número de páginas e o tamanho de letra num PDF; pede revisão humana para gramática e apresentação visual.
-- Compara, opcionalmente, palavras do CV com uma descrição de vaga.
-- Permite descarregar um plano de melhoria e o texto revisto, em TXT.
-- Inclui um exemplo fictício de Economia e adapta-se a telemóvel e computador.
+- Calcula uma pontuação de **0 a 100**, explicada em 17 critérios e quatro grupos.
+- Mostra os pontos em falta e sugestões associadas ao conteúdo a rever.
+- Verifica possíveis erros ortográficos PT-PT, pontuação básica e repetições próximas.
+- Mede sinais de apresentação do PDF: tamanho da letra, distância às margens, espaçamento, cobertura de texto, páginas e famílias tipográficas.
+- Permite organizar e editar as secções num modelo simples, com pré-visualização.
+- Cria um **novo PDF com texto selecionável**, usando a informação revista pelo utilizador.
+- Reavalia o documento produzido e permite continuar a melhorar antes de o descarregar.
+- Compara opcionalmente palavras do currículo com a descrição de uma oportunidade.
+- Inclui um exemplo fictício de Economia para uma demonstração sem dados pessoais.
+
+O editor não inventa experiência, formação, competências nem resultados. Quando falta informação, a aplicação explica o que falta: essa informação tem de ser acrescentada pela pessoa. O PDF pode ser descarregado sem atingir 100; nunca é rotulado como perfeito só porque foi gerado.
 
 ## Experimentar localmente
 
-Requer **Node.js 22 ou superior**. Não há dependências para instalar.
+É necessário **Node.js 22 ou superior** para o servidor e os testes. Os recursos da aplicação estão incluídos; não há dependências para instalar para a utilização habitual.
 
 1. Extrair a pasta do projeto.
 2. Abrir um terminal nessa pasta e executar `node server.mjs` (ou `npm start`).
-3. Abrir **http://127.0.0.1:4173** no navegador.
+3. Abrir **http://127.0.0.1:4173** num navegador atualizado.
 
-Em Windows, o ficheiro `Iniciar-Rumo.cmd` facilita o arranque se o Node.js estiver instalado. O terminal precisa de ficar aberto durante a utilização. Para parar, usar Ctrl+C no terminal.
+Em Windows, `Iniciar-Rumo.cmd` facilita o arranque se o Node.js estiver instalado. O terminal precisa de ficar aberto durante a utilização. Para parar, usar Ctrl+C.
 
-Não abrir `dist/index.html` diretamente: os módulos e o dicionário precisam de um servidor HTTP, como o servidor local incluído ou o GitHub Pages.
-
-## Publicar gratuitamente no GitHub Pages
-
-Não é necessário comprar um domínio. Um repositório público pode usar o endereço `https://mitchell1970.github.io/RUMO/`.
-
-1. Usar o repositório público [MItchell1970/RUMO](https://github.com/MItchell1970/RUMO).
-2. Colocar na raiz do repositório os ficheiros desta pasta, incluindo `.github/workflows/pages.yml`. A pasta `dist` deve ficar diretamente na raiz, sem outra pasta a envolvê-la.
-3. Em **Settings → Pages → Build and deployment**, selecionar **GitHub Actions** como origem.
-4. Em **Actions**, abrir **Testar e publicar a Rumo** e executar **Run workflow** na branch `main`. As atualizações futuras em `main` voltam a testar e publicar automaticamente.
-5. Quando o trabalho terminar com sucesso, abrir o endereço indicado no ambiente `github-pages`.
-
-O workflow executa os testes antes de publicar apenas a pasta `dist`. O site não necessita de chaves, contas de utilizador, base de dados ou serviços pagos. O código usa caminhos relativos, compatíveis com subpastas do GitHub Pages.
-
-Documentação oficial: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages).
+Não abrir `dist/index.html` diretamente: os módulos, os verificadores e as fontes precisam de um servidor HTTP, como o servidor incluído ou o GitHub Pages. PDF.js usa funcionalidades recentes de JavaScript; recomenda-se uma versão atual do navegador.
 
 ## Como se calcula a pontuação
 
-| Critério | Máximo | Verificação |
-|---|---:|---|
-| Contacto | 10 | Um meio de contacto identificado |
-| Perfil e objetivo | 10 | Introdução com contexto e objetivo |
-| Formação | 10 | Secção com conteúdo de formação |
-| Experiência ou projetos | 15 | Experiência, projeto académico ou voluntariado descrito |
-| Exemplos e resultados | 10 | Ação e entrega concretas, sem exigir números inventados |
-| Competências demonstráveis | 10 | Ferramentas/capacidades com explicação |
-| Organização do conteúdo | 10 | Secções identificáveis no texto |
-| Escrita | 15 | Ortografia (9), pontuação (3), revisão humana de gramática (3) |
-| Apresentação e legibilidade | 10 | Sinais de PDF e revisão visual, ou confirmação humana no texto |
-| **Total** | **100** | |
+| Grupo | Critérios | Máximo |
+|---|---|---:|
+| Conteúdo | Contacto (8), perfil e objetivo (8), formação (10), experiência/projetos (14), tarefas e entregas (10), competências aplicadas (10) | **60** |
+| Estrutura | Secções com informação (7), clareza e síntese (5), ausência de duplicações exatas (3) | **15** |
+| Escrita | Ortografia (7), pontuação e repetições próximas (3) | **10** |
+| Apresentação do PDF | Letra (4), margens (3), espaçamento (3), cobertura de texto (2), extensão (2), famílias tipográficas (1) | **15** |
+| **Total** | **17 critérios** | **100** |
 
-As sugestões somam exatamente os pontos em falta. Os pesos são uma decisão educativa deste projeto: não constituem uma escala científica validada nem uma avaliação utilizada por empregadores.
+Cada critério pode atribuir pontos parciais. As sugestões somam exatamente os pontos em falta: `pontuação + ganhos possíveis = 100`. Os pesos e limiares são escolhas educativas do projeto; não constituem uma escala científica validada nem uma avaliação utilizada por empregadores.
 
-No PDF, até duas páginas vale três pontos e a indicação de letra legível vale quatro. São referências para candidaturas de início de carreira, não regras universais. A revisão visual vale os três pontos restantes. Ao colar texto, a apresentação não é inferida: os dez pontos dependem de confirmação humana. Ao editar o texto, as confirmações e medidas do PDF anterior deixam de se aplicar.
+O conteúdo é reconhecido através de títulos, contexto e padrões. Projetos académicos e voluntariado contam como experiência. Uma entrega concreta pode ser um relatório ou uma apresentação: não é obrigatório incluir percentagens. Secções vazias ou duplicadas não dão pontos adicionais. Não há pontos por fotografia, morada completa, idade ou nacionalidade, nem pontos obtidos apenas por assinalar uma caixa de confirmação.
 
-O exemplo começa com **72 pontos** quando o dicionário está disponível: faltam exemplos/resultados (10), detalhe nas competências (5), revisão de gramática (3) e revisão visual (10). As confirmações pessoais aparecem explicitamente no resultado.
+Na escrita, cada alerta distinto reduz um ponto, até ao mínimo de zero do respetivo critério. Alertas ortográficos repetidos sobre o mesmo termo são contados uma vez. Sem o verificador disponível, os pontos de escrita ficam por verificar. Confirmar um nome próprio ou termo técnico evita falsos alertas; não certifica que toda a frase esteja correta.
 
-## Limites e privacidade
+### Apresentação e limpeza
 
-- A análise usa regras locais, sem IA generativa ou serviços externos para interpretar o CV. Pode falhar na identificação de conteúdo, termos técnicos ou nomes próprios.
-- A revisão automática não compreende toda a gramática. As sugestões precisam de confirmação; o utilizador faz a leitura final.
-- O formato do PDF é avaliado apenas por medidas aproximadas. Colunas, margens, cores e sobreposições exigem revisão visual. PDFs digitalizados como imagem e documentos protegidos não são suportados.
-- Limites de importação: 5 MB, 12 páginas e 30 000 caracteres. A análise exige pelo menos 40 palavras.
-- A comparação de palavras-chave não altera a pontuação, não compreende sinónimos nem certifica compatibilidade com sistemas de recrutamento.
-- **100 pontos significa cumprir a lista deste projeto**, não ter um CV perfeito nem ter contratação garantida.
-- O conteúdo do CV é processado em memória no navegador. A aplicação não o envia a um servidor, não usa analytics, cookies de rastreio ou armazenamento persistente. O servidor de alojamento continua a receber os pedidos normais para abrir o site e os seus recursos.
-- Fechar ou recarregar a página elimina o texto da memória da aplicação. Os ficheiros descarregados permanecem no dispositivo. Editar o texto aqui não modifica o PDF original.
+As medidas vêm da geometria do texto extraído do PDF, não de uma imagem ou de uma avaliação estética. A aplicação considera:
+
+- Corpo estimado de pelo menos 10 pt e até 15% do texto abaixo de 10 pt para o máximo da letra.
+- Pelo menos 28,35 pt, aproximadamente 10 mm, de distância estimada à borda para o máximo das margens.
+- Até 5% de pares de linhas comparáveis demasiado próximos para o máximo de espaçamento.
+- Cobertura das caixas de texto entre 5% e 45% da página para o máximo de distribuição; esta medida exclui imagens e fundos.
+- Uma ou duas páginas para o máximo de extensão e uma ou duas famílias tipográficas identificadas para consistência.
+
+As regras completas, incluindo os intervalos de pontuação parcial, aparecem no resultado e em `dist/analyzer.js`. O cálculo de espaçamento considera as áreas de leitura das linhas, para evitar confundir colunas desencontradas com linhas sobrepostas. As famílias usam a identidade original da fonte quando o PDF a disponibiliza; negrito e itálico da mesma família não são famílias adicionais.
+
+Medidas desconhecidas não recebem pontos. Num TXT ou em texto colado, os 15 pontos de apresentação ficam por medir até se produzir e analisar um PDF. Alterar o conteúdo invalida as medidas do documento anterior. Um PDF digitalizado como imagem não pode ser medido por este percurso.
+
+Estas referências destinam-se sobretudo a CVs de início de carreira. Um currículo com mais páginas ou um modelo diferente pode ser adequado ao contexto. Não se deve acrescentar texto vazio nem retirar informação essencial para aumentar a pontuação.
+
+## O que significa chegar aos 100
+
+**100 significa cumprir os critérios verificáveis da Rumo.** Não significa CV perfeito, contratação garantida ou aprovação em sistemas de recrutamento.
+
+O percurso mantém a distinção entre alterações de apresentação e informação em falta:
+
+1. O diagnóstico identifica os critérios e a evidência encontrada.
+2. O utilizador corrige alertas reais, completa dados verdadeiros e revê as secções.
+3. O modelo uniformiza a apresentação com texto selecionável, margens e hierarquia tipográfica.
+4. O PDF resultante volta a ser analisado. O resultado depende do conteúdo e das medidas desse documento, sem bónus por clicar em «gerar».
+
+É possível cumprir os critérios com um CV completo, sem inventar números nem experiências. As sugestões são indicações para rever, não afirmações acrescentadas automaticamente ao currículo.
+
+## Privacidade e limites
+
+- O conteúdo do CV é processado em memória no navegador. A aplicação não envia esse conteúdo a serviços externos, não usa analytics, cookies de rastreio ou armazenamento persistente. O alojamento recebe os pedidos normais de abertura do site e dos seus recursos.
+- Fechar ou recarregar a página elimina o texto da memória da aplicação. Os ficheiros que a pessoa descarregou continuam no dispositivo.
+- O PDF original não é modificado. O PDF novo contém a versão revista no editor; a extração de documentos com colunas ou elementos decorativos pode exigir correções na ordem das secções.
+- A análise usa regras locais e um dicionário, sem IA generativa. Não verifica a veracidade das qualificações e pode falhar na interpretação do conteúdo, nomes próprios e termos técnicos.
+- O verificador não compreende toda a gramática. As sugestões precisam de confirmação e o documento final deve ser lido pela pessoa.
+- A medição de apresentação não avalia cores, contraste, fotografias, qualidade estética, adequação de uma marca de template nem todas as sobreposições. Algumas geometrias ou fontes incompletas ficam por medir.
+- Limites de importação: 5 MB, 12 páginas e 30 000 caracteres. A análise exige pelo menos 40 palavras e alguma variedade de conteúdo. PDFs protegidos ou digitalizados como imagem não são suportados.
+- A comparação de palavras-chave é literal, não compreende sinónimos, não altera a pontuação e não certifica compatibilidade com sistemas ATS.
 
 ## Código e verificação
 
@@ -82,39 +95,47 @@ O exemplo começa com **72 pontos** quando o dicionário está disponível: falt
 dist/
   index.html          Página e conteúdo em PT-PT
   styles.css          Identidade visual e comportamento responsivo
-  app.js              Interação, estado, resultados e exportação
-  analyzer.js         Critérios transparentes de pontuação
-  writing.js          Comunicação com o verificador de escrita
-  writing-worker.js   Dicionário e regras de escrita fora da interface
-  pdf-reader.js       Extração de texto e medidas aproximadas de PDF
-  vendor/             Bibliotecas, dicionário, fontes e licenças
-tests/                Testes de critérios, escrita e leitura de ficheiros
+  app.js              Percurso, estado e apresentação dos resultados
+  analyzer.js         Pontuação, evidência e sugestões por critério
+  writing.js          Comunicação com o verificador
+  writing-worker.js   Dicionário e regras fora da interface
+  pdf-reader.js       Extração de texto e geometria de PDF
+  cv-model.js         Secções editáveis e preservação do conteúdo importado
+  pdf-export.js       Criação de PDF com fontes incorporadas
+  vendor/             Bibliotecas, fontes, dicionário e licenças
+tests/                Regressões da pontuação, escrita, leitura e geração
 .github/workflows/   Validação e publicação no GitHub Pages
 server.mjs            Servidor local
 ```
 
-Executar os testes com `node --test tests/*.test.mjs` (ou `npm test`). A suíte cobre a soma e os limites da pontuação, conteúdos incompletos, alertas, falhas do dicionário, acentos, confirmação humana, metadados de PDF, limites e erros de importação. A interface é também verificada manualmente em computador e telemóvel.
+Executar `node --test tests/*.test.mjs` (ou `npm test`). A suíte verifica somas e limites da pontuação, conteúdo insuficiente, ganhos possíveis, casos de 100 pontos, alertas duplicados, falhas de escrita, acentos, dados inválidos, geometria de PDF, margens, colunas, rotação, fontes e limites de importação. A geração de PDF e o percurso na interface devem também ser verificados antes da publicação.
 
-As decisões técnicas privilegiam simplicidade: HTML, CSS e JavaScript, sem processo de compilação. O Web Worker evita bloquear a interface durante a revisão ortográfica. Os conteúdos introduzidos pelo utilizador são escapados antes de serem apresentados como HTML.
+As decisões técnicas privilegiam simplicidade: HTML, CSS e JavaScript, sem processo de compilação. O Web Worker mantém a revisão ortográfica fora da interface. As bibliotecas e fontes são servidas com o próprio site; não há chaves secretas no cliente.
+
+## Publicar no GitHub Pages
+
+O projeto usa o repositório público [MItchell1970/RUMO](https://github.com/MItchell1970/RUMO) e o endereço [mitchell1970.github.io/RUMO](https://mitchell1970.github.io/RUMO/), sem domínio próprio pago.
+
+Em **Settings → Pages → Build and deployment**, selecionar **GitHub Actions**. O workflow `.github/workflows/pages.yml` executa os testes antes de publicar apenas `dist` a partir de `main`. Também pode ser iniciado em **Actions → Testar e publicar a Rumo → Run workflow**. Os caminhos relativos permitem servir o site na subpasta `/RUMO/`.
+
+O repositório contém código, documentação e exemplos fictícios. Nunca acrescentar currículos reais aos testes, commits ou imagens públicas. Documentação oficial: [GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/what-is-github-pages).
 
 ## Apresentação na faculdade e portefólio
 
-Uma demonstração de três minutos:
+Uma demonstração de três minutos pode mostrar o exemplo, o diagnóstico, a melhoria de uma competência ou descrição de projeto, a correção de um erro e a criação do novo PDF. Explicar os pesos e os limites é parte do projeto: o objetivo é tornar o processo de revisão compreensível, com privacidade e critérios visíveis.
 
-1. Explicar o problema: é difícil perceber o que falta num CV quando se procura a primeira oportunidade.
-2. Carregar o exemplo e mostrar a pontuação e as sugestões com pontos recuperáveis.
-3. Melhorar uma competência e acrescentar uma entrega verdadeira de um projeto; voltar a analisar.
-4. Introduzir um erro como “responssabilidade”, demonstrar a sugestão de correção e aplicar.
-5. Explicar por que motivo a gramática e a apresentação ainda exigem leitura humana; descarregar o plano.
-
-Para o portefólio, mostra o problema, as decisões de produto, a ligação à Economia, a metodologia de pontuação e os testes. O projeto foi desenvolvido com assistência de IA: descreve a tua participação com transparência. Uma evolução útil é testar com colegas e documentar o que mudaste a partir desse feedback, sem publicar os seus CVs.
+Para o portefólio, apresenta o problema, a ligação à Economia, as decisões de produto, a metodologia, os testes e o que aprendeste com o feedback de colegas. O projeto foi desenvolvido com assistência de IA; descreve a tua participação com transparência e nunca publiques CVs de participantes.
 
 ## Fontes e componentes de terceiros
 
 - [Europass — criar um CV](https://europass.europa.eu/pt/create-europass-cv): referência para organização e adaptação do conteúdo.
 - [Europass — informações do perfil](https://europass.europa.eu/pt/what-type-information-should-i-include-my-europass-profile): referência para formação, experiências e competências.
-- Mozilla PDF.js 5.6.205: licença Apache 2.0 em `dist/vendor/LICENSE-pdfjs.txt`.
-- Typo.js: licença em `dist/vendor/typo-LICENSE.txt`.
-- Dicionário PT-PT distribuído no projeto LibreOffice: origem, versões e licença GPL-2.0 em `dist/vendor/pt-PT-SOURCES.md`, `pt-PT-LICENSES.txt` e `pt-PT-COPYING-GPL-2.txt`.
+- Mozilla PDF.js 5.6.205, Apache 2.0: `dist/vendor/LICENSE-pdfjs.txt`.
+- pdf-lib, MIT: `dist/vendor/pdf-lib-LICENSE.md`.
+- @pdf-lib/fontkit, MIT: `dist/vendor/fontkit-LICENSE.txt`.
+- Pako, compressão usada pelo fontkit: `dist/vendor/pako-LICENSE.txt`.
+- Typo.js: `dist/vendor/typo-LICENSE.txt`.
+- Dicionário PT-PT distribuído no LibreOffice, GPL-2.0: origem e versões em `dist/vendor/pt-PT-SOURCES.md`; licenças nos ficheiros `pt-PT-LICENSES.txt` e `pt-PT-COPYING-GPL-2.txt`.
+- Fontes Liberation Sans: `dist/vendor/LiberationSans-LICENSE.txt`.
 
-Consultar também `dist/CREDITOS.txt`. Preservar as licenças dos componentes ao redistribuir. A Rumo é independente das entidades mencionadas. Os dados do exemplo são fictícios.
+Consultar também `dist/CREDITOS.txt` e `dist/vendor/PDF-EXPORT-SOURCES.md` e preservar todas as licenças ao redistribuir. A Rumo é independente das entidades referidas; nenhuma delas valida os pesos da pontuação. Os dados do exemplo são fictícios.

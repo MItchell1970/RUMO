@@ -25,6 +25,14 @@ Os ficheiros do dicionário são redistribuídos sob GPL 2, com código-fonte e 
 Detalhes e versões fixadas: vendor/pt-PT-SOURCES.md
 Licenças: vendor/pt-PT-LICENSES.txt, vendor/pt-PT-README.txt e vendor/pt-PT-COPYING-GPL-2.txt
 
+CRIAÇÃO DE PDF
+pdf-lib 1.17.1 — MIT. https://pdf-lib.js.org/
+@pdf-lib/fontkit 1.1.1 — MIT. https://github.com/Hopding/fontkit
+pako 1.0.11 — MIT/Zlib. https://github.com/nodeca/pako
+Liberation Sans — SIL Open Font License 1.1.
+Fontes, versões e adaptações: vendor/PDF-EXPORT-SOURCES.md
+As licenças completas estão incluídas na pasta vendor.
+
 LIMITES
 A ortografia é uma verificação assistida e a análise de apresentação usa medidas aproximadas do PDF.
 A gramática completa e o aspeto final dependem de revisão humana.

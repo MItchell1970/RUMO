@@ -8,3 +8,4 @@ tests/*.png
 tests/*.jpg
 tests/qa-*.mjs
 playwright-report/
+tmp/

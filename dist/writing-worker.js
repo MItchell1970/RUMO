@@ -34,6 +34,10 @@ const CV_VOCABULARY = new Set(`
   aprendizagem resultados equipa trabalho contacto contactos certificação certificações
   português inglês francês espanhol educação informação informações informática informática
   estatística estatístico estatísticos financeira financeiro financeiros empresarial
+  analisei desenvolvi organizei coordenei elaborei apresentei implementei participei
+  preparei colaborei criei realizei acompanhei apoiei trabalhei geri contribuí
+  analisar desenvolver organizar coordenar elaborar apresentar implementar participar
+  preparar colaborar criar realizar acompanhar apoiar trabalhar gerir contribuir
 `.trim().split(/\s+/));
 
 async function getDictionary() {

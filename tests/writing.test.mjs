@@ -59,6 +59,13 @@ test('capitalised CV headings still get relevant suggestions', async () => {
   assert.ok(result.issues[1].suggestions.includes('RESPONSABILIDADE'));
 });
 
+test('capitalised action verbs are checked without treating them as proper names', async () => {
+  const result = await check('Analizei dados. Desenvolvi projetos. Organizei tarefas.');
+  assert.equal(result.issues.length, 1);
+  assert.equal(result.issues[0].word, 'Analizei');
+  assert.ok(result.issues[0].suggestions.includes('Analisei'));
+});
+
 test('punctuation and repeated words retain original offsets, including accented words', async () => {
   const text = '📌 experiência experiência; será será. Gestão , economia.';
   const result = await check(text);
