@@ -5,12 +5,20 @@ const fold = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toL
 const headings = [
   ['profile', /^(?:perfil(?: profissional| pessoal)?|sobre mim|resumo(?: profissional)?|objetivo(?: profissional)?|apresentacao|summary|profile|about me)$/],
   ['contact', /^(?:contactos?|contatos?|dados pessoais|informacoes pessoais|contact(?: details)?|personal details)$/],
-  ['education', /^(?:formacao(?: academica| complementar)?|educacao(?: e formacao)?|habilitacoes(?: academicas| literarias)?|education|academic background|certificacoes|certificados|cursos)$/],
-  ['experience', /^(?:experiencias?(?: profission(?:al|ais)| relevante)?|experiencia e projetos|percurso(?: profissional)?|projetos?(?: academicos?| pessoais| selecionados)?|voluntariado|associativismo|atividades extracurriculares|(?:work |professional )?experience|projects|volunteering)$/],
+  ['education', /^(?:formacao(?: academica| complementar)?|educacao(?: e formacao)?|habilitacoes(?: academicas| literarias)?|education(?: and qualifications)?|academic background|qualifications|certificacoes|certificados|cursos|certifications|certificates)$/],
+  ['experience', /^(?:experiencias?(?: profission(?:al|ais)| relevante)?|experiencia e projetos|percurso(?: profissional)?|projetos?(?: academicos?| pessoais| selecionados)?|voluntariado|associativismo|atividades extracurriculares|(?:work |professional |relevant )?experience|employment(?: history)?|projects|leadership(?: experience)?|volunteer(?:ing| work| experience)?|voluntary work|leadership\s*(?:&|and|\+)\s*(?:voluntary work|volunteering)|extracurricular activities)$/],
   ['skills', /^(?:competencias(?: tecnicas| digitais| pessoais)?|conhecimentos(?: tecnicos)?|ferramentas|aptidoes|tecnologias|idiomas|linguas|skills|languages|technical skills)$/],
   ['extra', /^(?:informacoes adicionais|outras informacoes|interesses|publicacoes|referencias|premios|additional information|interests|references|publications)$/],
 ];
 const labels = { contact: 'Contactos', profile: 'Perfil', education: 'Formação académica', experience: 'Experiência', skills: 'Competências', extra: 'Informações adicionais' };
+const englishLabels = { contact: 'Contact', profile: 'Profile', education: 'Education', experience: 'Work experience', skills: 'Skills', extra: 'Additional information' };
+
+export function detectCVLanguage(text = '') {
+  const normalized = fold(String(text));
+  const en = (normalized.match(/\b(?:education|experience|leadership|voluntary|volunteering|skills|languages|university|bachelor|master|managed|developed|analyzed|analysed|responsible|with|and|the|for)\b/g) || []).length;
+  const pt = (normalized.match(/\b(?:formacao|experiencia|lideranca|voluntariado|competencias|idiomas|universidade|licenciatura|mestrado|geri|desenvolvi|analisei|responsavel|com|para|das|dos)\b/g) || []).length;
+  return en > pt && en >= 2 ? 'en' : 'pt';
+}
 
 export function normalizeModel(model = {}) {
   return Object.fromEntries(CV_FIELDS.map(key => [key, clean(model?.[key])]));
@@ -19,7 +27,8 @@ export function normalizeModel(model = {}) {
 /** Values appear unchanged and in CV_FIELDS order, for stable spellcheck offsets. */
 export function serializeCV(model = {}) {
   const normalized = normalizeModel(model);
-  return CV_FIELDS.filter(key => normalized[key]).map(key => labels[key] ? `${labels[key]}\n${normalized[key]}` : normalized[key]).join('\n\n');
+  const headings = detectCVLanguage(Object.values(normalized).join('\n')) === 'en' ? englishLabels : labels;
+  return CV_FIELDS.filter(key => normalized[key]).map(key => headings[key] ? `${headings[key]}\n${normalized[key]}` : normalized[key]).join('\n\n');
 }
 
 export function parseCV(text = '') {
@@ -32,13 +41,15 @@ export function parseCV(text = '') {
     if (!line) { if (active) buffers[active].push(''); continue; }
     const candidate = line.replace(/^[#•*]\s*/, '');
     const colon = candidate.indexOf(':');
-    const title = (colon < 0 ? candidate : candidate.slice(0, colon)).trim();
+    const title = (colon < 0 ? candidate : candidate.slice(0, colon)).trim().replace(/[\s_—-]+$/, '');
+    // Inline labels in Additional information are still part of that section.
+    if (active === 'extra' && colon > 0 && candidate.slice(colon + 1).trim()) { buffers.extra.push(line); continue; }
     const known = headings.find(([, expression]) => expression.test(fold(title)));
     if (known) {
       active = known[0];
       // Retain subgroup labels (e.g. languages, volunteering) so their context is not lost.
       if (buffers[active].length) buffers[active].push('', title);
-      else if (/^(?:idiomas|linguas|languages|certific|cursos|projet|projects|volunt|associ|atividades)/.test(fold(title))) buffers[active].push(title);
+      else if (/^(?:idiomas|linguas|languages|certific|cursos|projet|projects|volunt|associ|atividades|leadership|extracurricular)/.test(fold(title))) buffers[active].push(title);
       if (colon >= 0 && candidate.slice(colon + 1).trim()) buffers[active].push(candidate.slice(colon + 1).trim());
       continue;
     }
@@ -48,13 +59,19 @@ export function parseCV(text = '') {
       buffers[active].push(line);
       continue;
     }
-    if (/^(?:curriculum vitae|curriculo|cv)$/i.test(fold(line))) { buffers.extra.push(line); continue; }
-    if (/\b[\w.+-]+@[\w.-]+\.\w+|(?:linkedin|github)\.com|(?:\+?\d[\s()-]*){8,}|^(?:e-?mail|telefone|telemovel|morada|localidade|contacto|website)\s*:/i.test(fold(line))) {
+    if (/^(?:curriculum vitae|curriculo|cv|resume|curriculum)$/i.test(fold(line))) { buffers.extra.push(line); continue; }
+    const nameLine = line.split('\t').map(value => value.trim()).filter(Boolean);
+    if (!buffers.name.length && introContent === 0 && nameLine.length > 1 && /^[\p{L}\p{M}'’.-]+(?:\s+[\p{L}\p{M}'’.-]+){1,6}$/u.test(nameLine[0])) {
+      buffers.name.push(nameLine[0]); buffers.contact.push(nameLine.slice(1).join('\t')); introContent++; continue;
+    }
+    const labelledName = /^(?:nome(?: completo)?|(?:full )?name)\s*:\s*(.+)$/i.exec(line);
+    if (!buffers.name.length && labelledName) { buffers.name.push(labelledName[1]); introContent++; continue; }
+    if (/\b[\w.+-]+@[\w.-]+\.\w+|(?:linkedin|github)\.com|(?:\+?\d[\s()-]*){8,}|^(?:e-?mail|telefone|telemovel|morada|localidade|contacto|website|phone|mobile|address|linkedin|github)\s*:/i.test(fold(line))) {
       buffers.contact.push(line); continue;
     }
-    const likelyName = introContent === 0 && !buffers.name.length && /^[\p{L}\p{M}'’.-]+(?:\s+[\p{L}\p{M}'’.-]+){1,6}$/u.test(line) && !/\b(?:analista|estudante|licenciad|engenheir|economista|gestor|consultor|profissional|curriculo|curriculum|experiencia|formacao|procuro|universidade|faculdade|escola)\w*/.test(fold(line));
+    const likelyName = introContent === 0 && !buffers.name.length && /^[\p{L}\p{M}'’.-]+(?:\s+[\p{L}\p{M}'’.-]+){1,6}$/u.test(line) && !/\b(?:analista|estudante|licenciad|engenheir|economista|gestor|consultor|profissional|curriculo|curriculum|experiencia|formacao|procuro|universidade|faculdade|escola|student|analyst|engineer|economist|manager|consultant|professional|university|college|school)\w*/.test(fold(line));
     if (likelyName) buffers.name.push(line);
-    else if (buffers.name.length && !buffers.headline.length && introContent === 1 && line.length <= 120 && /\b(?:analista|estudante|licenciad|engenheir|economista|gestor|consultor|designer|developer|programador|tecnic|especialista|assistente|profissional)\w*/.test(fold(line))) buffers.headline.push(line);
+    else if (buffers.name.length && !buffers.headline.length && introContent === 1 && line.length <= 120 && /\b(?:analista|estudante|licenciad|engenheir|economista|gestor|consultor|designer|developer|programador|tecnic|especialista|assistente|profissional|student|analyst|engineer|economist|manager|consultant|professional|assistant)\w*/.test(fold(line))) buffers.headline.push(line);
     else buffers.extra.push(line);
     introContent++;
   }

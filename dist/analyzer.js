@@ -3,25 +3,29 @@ const normalize = text => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').
 const words = text => text.match(/[\p{L}\p{N}]+(?:[+#]{1,2})?/gu) || [];
 const excerpt = text => text.length > 155 ? `${text.slice(0, 152)}…` : text;
 const EMAIL = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
-const DEGREE = /\b(?:licenciatura|licenciado|licenciada|mestrado|mestre|curso|ensino secundario|ensino profissional|pos.graduacao|doutoramento|bacharelato|certificacao)\b/;
-const INSTITUTION = /\b(?:universidade|faculdade|instituto|instituicao|escola|politecnico|academia|iseg|iscte|nova sbe|catolica)\b/;
-const DATES = /\b(?:20\d{2}|19\d{2}|em curso|concluido|concluida|atual|presente)\b/;
-const EXPERIENCE = /\b(?:projeto|projetos|experiencia|estagio|estagios|voluntariado|voluntario|voluntaria|associacao|associativismo|portfolio|portefolio|investigacao)\b/;
+const DEGREE = /\b(?:licenciatura|licenciado|licenciada|mestrado|mestre|curso|ensino secundario|ensino profissional|pos.graduacao|doutoramento|bacharelato|certificacao|bachelor|master|degree|diploma|phd|bsc|msc|education|course|qualification)\b/;
+const INSTITUTION = /\b(?:universidade|faculdade|instituto|instituicao|escola|politecnico|academia|iseg|iscte|nova sbe|catolica|university|college|institute|school|academy|polytechnic)\b/;
+const DATES = /\b(?:20\d{2}|19\d{2}|em curso|concluido|concluida|atual|presente|present|current|ongoing|expected|completed)\b/;
+const EXPERIENCE = /\b(?:projeto|projetos|experiencia|estagio|estagios|voluntariado|voluntario|voluntaria|associacao|associativismo|portfolio|portefolio|investigacao|experience|internship|project|projects|volunteer|volunteering|voluntary|leadership|research)\b/;
 const ACTION = /\b(?:analisar|analisei|analisou|analisamos|analise|analises|desenvolver|desenvolvi|desenvolveu|desenvolvemos|desenvolvimento|criar|criei|criou|criamos|criacao|organizar|organizei|organizou|organizamos|organizacao|coordenar|coordenei|coordenou|coordenamos|coordenacao|apresentar|apresentei|apresentou|apresentamos|apresentacao|comparar|comparei|comparou|comparamos|comparacao|construir|construi|construiu|construimos|construcao|preparar|preparei|preparou|preparamos|preparacao|apoiar|apoiei|apoiou|apoiamos|apoio|implementar|implementei|implementou|implementamos|implementacao|automatizar|automatizei|automatizou|automatizamos|automatizacao|melhorar|melhorei|melhorou|melhoramos|melhoria|reduzir|reduzi|reduziu|reduzimos|reducao|produzir|produzi|produziu|produzimos|producao|elaborar|elaborei|elaborou|elaboramos|elaboracao|recolher|recolhi|recolheu|recolhemos|recolha|tratar|tratamento|limpeza|visualizacao|validacao|gerir|gestao|atendimento|colaborar|colaborei|colaboracao|participar|participei|participacao|investigar|investigacao|programar|programacao|redigir|redacao|ensinar|ensinei|ensino|planear|planeamento|monitorizar|monitorizacao)\b/;
 const OUTPUT = /(?:\b\d+(?:[.,]\d+)?\s*(?:participantes|pessoas|alunos|estudantes|respostas|observacoes|registos|empresas|indicadores|paginas|horas|semanas|meses|membros|projetos|ficheiros|questionarios|entrevistas|euros|clientes|utilizadores|tabelas|fontes)\b)|(?:\b\d+(?:[.,]\d+)?\s*%)|(?:\b(?:relatorio|apresentacao|dashboard|painel|inquerito|base de dados|prototipo|orcamento|estudo comparativo|modelo econometrico|guia|manual|folheto|video|website|site|cartaz|artigo|ensaio)\b)/;
 const SKILL = /\b(?:excel|python|sql|stata|spss|eviews|tableau|power bi|powerpoint|javascript|html|css|figma|git|comunicacao|estatistica|econometria|contabilidade|programacao|analise de dados|trabalho em equipa|gestao de projetos|modelacao|investigacao|redacao|atendimento|ingles|frances|espanhol)\b/;
 const PROFILE_CONTEXT = /\b(?:estudante|profissional|interesse|interessado|interessada|procuro|objetivo|especializacao|especializado|especializada|economia|licenciado|licenciada|mestrando|mestranda|experiencia|pretendo)\b/;
+const EN_ACTION = /\b(?:analys(?:e|ed|ing|is)|analyz(?:e|ed|ing)|develop(?:ed|ing|ment)?|creat(?:e|ed|ing|ion)|organis(?:e|ed|ing|ation)|organiz(?:e|ed|ing|ation)|coordinat(?:e|ed|ing|ion)|present(?:ed|ing|ation)?|compar(?:e|ed|ing|ison)|built|build(?:ing)?|prepar(?:e|ed|ing|ation)|support(?:ed|ing)?|implement(?:ed|ing|ation)?|automat(?:e|ed|ing|ion)|improv(?:e|ed|ing|ement)|reduc(?:e|ed|ing|tion)|produc(?:e|ed|ing|tion)|collect(?:ed|ing|ion)?|manag(?:e|ed|ing|ement)|collaborat(?:e|ed|ing|ion)|participat(?:e|ed|ing|ion)|research(?:ed|ing)?|programming|wrote|writing|taught|teach(?:ing)?|led|lead(?:ing|ership)?|plan(?:ned|ning)?|monitor(?:ed|ing)?|deliver(?:ed|ing)?|responsible|responsibilities|oversaw|achieved|assisted|maintained|facilitated)\b/;
+const EN_OUTPUT = /\b(?:report|presentation|dashboard|survey|database|prototype|budget|study|model|guide|manual|video|website|article|essay|event|campaign|workshop|training|clients|customers|participants|students|observations|records|companies|indicators|pages|hours|weeks|months|members|projects|files|interviews|users|tables|sources)\b/;
+const hasAction = value => ACTION.test(value) || EN_ACTION.test(value);
+const hasOutput = value => OUTPUT.test(value) || EN_OUTPUT.test(value);
 const HEADINGS = [
-  ['profile', /^(?:perfil|sobre mim|resumo|objetivo|apresentacao)(?:\s+(?:pessoal|profissional))?$/],
-  ['contact', /^(?:contacto|contactos|dados pessoais)$/],
-  ['education', /^(?:formacao|educacao|habilitacoes)(?:\s+(?:academica|academicas|e formacao|complementar|literarias))?$/],
-  ['experience', /^(?:experiencia|experiencias|percurso)(?:\s+(?:profissional|profissionais|relevante|e projetos))?$/],
-  ['projects', /^(?:projeto|projetos)(?:\s+(?:academicos|academico|pessoais|selecionados))?$/],
-  ['volunteering', /^(?:voluntariado|associativismo|atividades extracurriculares)$/],
-  ['skills', /^(?:competencias|conhecimentos|ferramentas|aptidoes|tecnologias)(?:\s+(?:tecnicas|tecnicos|digitais|pessoais))?$/],
-  ['languages', /^(?:idiomas|linguas)$/],
-  ['certificates', /^(?:certificacoes|certificados)$/],
-  ['extra', /^(?:informacoes adicionais|outras informacoes|interesses|publicacoes|referencias|premios)$/],
+  ['profile', /^(?:(?:perfil|sobre mim|resumo|objetivo|apresentacao)(?:\s+(?:pessoal|profissional))?|(?:professional )?(?:profile|summary)|about me|objective)$/],
+  ['contact', /^(?:contacto|contactos|dados pessoais|contact(?: details)?|personal details)$/],
+  ['education', /^(?:(?:formacao|educacao|habilitacoes)(?:\s+(?:academica|academicas|e formacao|complementar|literarias))?|education(?: and qualifications)?|academic background|qualifications)$/],
+  ['experience', /^(?:(?:experiencia|experiencias|percurso)(?:\s+(?:profissional|profissionais|relevante|e projetos))?|(?:work |professional |relevant )?experience|employment(?: history)?|leadership(?: experience)?)$/],
+  ['projects', /^(?:(?:projeto|projetos)(?:\s+(?:academicos|academico|pessoais|selecionados))?|(?:academic |personal )?projects)$/],
+  ['volunteering', /^(?:voluntariado|associativismo|atividades extracurriculares|voluntary work|volunteer(?:ing| work| experience)?|extracurricular activities|leadership\s*(?:&|and|\+)\s*(?:voluntary work|volunteering))$/],
+  ['skills', /^(?:(?:competencias|conhecimentos|ferramentas|aptidoes|tecnologias)(?:\s+(?:tecnicas|tecnicos|digitais|pessoais))?|(?:technical )?skills|tools)$/],
+  ['languages', /^(?:idiomas|linguas|languages)$/],
+  ['certificates', /^(?:certificacoes|certificados|certifications|certificates)$/],
+  ['extra', /^(?:informacoes adicionais|outras informacoes|interesses|publicacoes|referencias|premios|additional information|interests|publications|references|awards)$/],
 ];
 
 function sectionsOf(text) {
@@ -89,9 +93,9 @@ const meaningful = text => words(normalize(text)).filter(word => word.length > 2
 const sentencesOf = text => text.split(/[.!?;](?:\s|$)/).map(value => value.trim()).filter(Boolean);
 const preview = text => text ? '“' + excerpt(text.trim()) + '”' : 'Não identificado automaticamente.';
 const pct = value => Math.round(value * 100) + '%';
-const direction = /\b(?:interesse|interessado|interessada|procuro|pretendo|objetivo|ambiciono|candidatura|estagio|aplicar|contribuir|especializa|orientado|orientada|dedicado|dedicada)\b/;
+const direction = /\b(?:interesse|interessado|interessada|procuro|pretendo|objetivo|ambiciono|candidatura|estagio|aplicar|contribuir|especializa|orientado|orientada|dedicado|dedicada|interested|interest|seeking|looking|goal|objective|internship|apply|contribute|specialis|specializ|focused|dedicated)\b/;
 const PORTFOLIO = /(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/in\/|github\.com\/|[a-z0-9-]+\.(?:pt|com|dev|me)\/)[^\s]+/i;
-const PHONE = /\b(?:telefone|telemovel|tel|contacto)\s*:?\s*(?:\+351[\s.-]*)?(?:\d[\s.-]*){9}(?!\d)/i;
+const PHONE = /\b(?:telefone|telemovel|tel|contacto|phone|mobile|telephone)\s*:?\s*(?:\+\d{1,3}[\s.-]*)?(?:\d[\s.()-]*){7,15}(?!\d)/i;
 
 function writingChecks(issues, ready) {
   const spelling = new Map();
@@ -166,6 +170,9 @@ function layoutChecks(meta) {
 function structureChecks(sections, wordCount) {
   const populated = sections.filter(section => !['intro', 'contact', 'extra'].includes(section.kind) && meaningful(section.text).length >= 2);
   const sectionKinds = new Set(populated.map(section => ['projects', 'volunteering'].includes(section.kind) ? 'experience' : section.kind === 'certificates' ? 'education' : section.kind));
+  // A usable contact block in the header is a real section too. This avoids
+  // requiring an otherwise unnecessary Summary just to reach four sections.
+  if (sections.some(section => EMAIL.test(section.text) || PHONE.test(section.text))) sectionKinds.add('contact');
   const count = sectionKinds.size;
   const units = sections.flatMap(section => section.lines.flatMap(sentencesOf)).filter(unit => words(unit).length >= 6);
   const long = units.filter(unit => words(unit).length > 40).length;
@@ -186,7 +193,7 @@ function structureChecks(sections, wordCount) {
     {
       id: 'sections', group: 'structure', label: 'Secções com informação', maxPoints: 7,
       points: count >= 4 ? 7 : count === 3 ? 5 : count === 2 ? 3 : count === 1 ? 1 : 0,
-      evidence: count + ' tipos de secções com conteúdo. Quatro ou mais: 7 pontos; três: 5; duas: 3; uma: 1. Títulos vazios e repetidos não aumentam a pontuação.',
+      evidence: count + ' tipos de secções com conteúdo, incluindo o bloco de contacto quando existe. Quatro ou mais: 7 pontos; três: 5; duas: 3; uma: 1. Títulos vazios e repetidos não aumentam a pontuação.',
       suggestion: 'Separa a informação por títulos claros, numa linha própria: Perfil, Formação, Projetos ou Experiência e Competências. Não acrescentes conteúdo fictício para preencher secções.',
       example: 'Perfil → Formação académica → Projetos académicos → Competências.',
     },
@@ -210,9 +217,16 @@ function contentChecks(sections, text) {
   const select = kinds => sections.filter(section => kinds.includes(section.kind));
   const content = kinds => select(kinds).map(section => section.text).join(' ').trim();
   const intro = select(['intro']).flatMap(section => section.lines);
-  const profileText = content(['profile']) || intro.filter(line => !EMAIL.test(line) && !PHONE.test(line) && !PORTFOLIO.test(line)).join(' ');
+  const explicitProfile = content(['profile']);
+  const profileIntro = intro.filter(line => !EMAIL.test(line) && !PHONE.test(line) && !PORTFOLIO.test(line)).join(' ');
+  const implicitEducation = content(['education']);
+  const implicitExperience = content(['experience', 'projects', 'volunteering']);
+  const implicitProfile = !explicitProfile && words(implicitEducation).length >= 5
+    && (DEGREE.test(normalize(implicitEducation)) || INSTITUTION.test(normalize(implicitEducation)))
+    && words(implicitExperience).length >= 12 && hasAction(normalize(implicitExperience));
+  const profileText = explicitProfile || (implicitProfile ? content(['education', 'experience', 'projects', 'volunteering']) : profileIntro);
   const profileContext = words(profileText).length >= 8 && meaningful(profileText).length >= 4;
-  const profileDirection = profileContext && direction.test(normalize(profileText));
+  const profileDirection = profileContext && (direction.test(normalize(profileText)) || implicitProfile);
   const explicitEducation = select(['education', 'certificates']);
   const educationText = explicitEducation.length ? explicitEducation.map(section => section.text).join(' ') : intro.filter(line => DEGREE.test(normalize(line))).join(' ');
   const educationNorm = normalize(educationText);
@@ -224,25 +238,26 @@ function contentChecks(sections, text) {
   const experienceNorm = normalize(experienceText);
   const activity = words(experienceText).length >= 6 && meaningful(experienceText).length >= 3;
   const units = sentencesOf(experienceText);
-  const actionUnit = units.find(unit => words(unit).length >= 4 && ACTION.test(normalize(unit)));
+  const actionUnit = units.find(unit => words(unit).length >= 4 && hasAction(normalize(unit)));
   const contribution = activity && Boolean(actionUnit);
-  const setting = activity && (DATES.test(experienceNorm) || /\b(?:grupo|equipa|associacao|instituicao|empresa|universidade|faculdade|escola|projeto de|iniciativa|organizacao)\b/.test(experienceNorm));
-  const concrete = activity && units.find(unit => words(unit).length >= 4 && ACTION.test(normalize(unit)) && OUTPUT.test(normalize(unit)));
-  const task = Boolean(concrete) || activity && units.some(unit => words(unit).length >= 6 && ACTION.test(normalize(unit)) && meaningful(unit).length >= 3);
+  const setting = activity && (DATES.test(experienceNorm) || /\b(?:grupo|equipa|associacao|instituicao|empresa|universidade|faculdade|escola|projeto de|iniciativa|organizacao|team|group|association|institution|company|university|college|school|project|initiative|organisation|organization)\b/.test(experienceNorm));
+  const concrete = activity && units.find(unit => words(unit).length >= 4 && hasAction(normalize(unit)) && hasOutput(normalize(unit)));
+  const task = Boolean(concrete) || activity && units.some(unit => words(unit).length >= 6 && hasAction(normalize(unit)) && meaningful(unit).length >= 3);
   const skillsSections = select(['skills']);
-  const skillsText = content(['skills']);
-  const skillsLines = skillsSections.flatMap(section => section.lines);
+  const supplementalSkills = select(['extra']).flatMap(section => section.lines).filter(line => /^(?:technical skills|skills|tools|competencias|ferramentas)\s*:/i.test(normalize(line)));
+  const skillsText = [content(['skills']), ...supplementalSkills].join(' ').trim();
+  const skillsLines = [...skillsSections.flatMap(section => section.lines), ...supplementalSkills];
   const namedSkill = SKILL.test(normalize(skillsText || experienceText)) || skillsLines.some(line => {
     const colon = line.indexOf(':');
     return colon > 0 && words(line.slice(0, colon)).length <= 5 && meaningful(line.slice(0, colon)).length >= 1 && meaningful(line.slice(colon + 1)).length >= 2;
   });
   const describedSkill = namedSkill && skillsLines.some(line => {
     const colon = line.indexOf(':');
-    return colon > 0 && meaningful(line.slice(colon + 1)).length >= 2 || ACTION.test(normalize(line)) && meaningful(line).length >= 4;
+    return colon > 0 && meaningful(line.slice(colon + 1)).length >= 2 || hasAction(normalize(line)) && meaningful(line).length >= 4;
   });
   const appliedSkill = describedSkill && skillsLines.some(line => {
     const colon = line.indexOf(':');
-    return colon > 0 && meaningful(line.slice(colon + 1)).length >= 3 || ACTION.test(normalize(line)) && words(line).length >= 7;
+    return colon > 0 && meaningful(line.slice(colon + 1)).length >= 3 || hasAction(normalize(line)) && words(line).length >= 7;
   });
   const directContact = EMAIL.test(text) || PHONE.test(text);
   const contactPoints = directContact ? 8 : PORTFOLIO.test(text) ? 4 : 0;
@@ -254,8 +269,8 @@ function contentChecks(sections, text) {
       example: 'Um email de contacto verdadeiro. Se usares telefone, identifica-o com “Telefone:” ou “Telemóvel:”.',
     },
     {
-      id: 'profile', label: 'Perfil e objetivo', points: (profileContext ? 4 : 0) + (profileDirection ? 4 : 0), maxPoints: 8,
-      evidence: 'Contexto pessoal/profissional: ' + (profileContext ? '4/4' : '0/4') + '; área de interesse ou objetivo: ' + (profileDirection ? '4/4' : '0/4') + '. ' + preview(profileText),
+      id: 'profile', label: 'Contexto e orientação do percurso', points: (profileContext ? 4 : 0) + (profileDirection ? 4 : 0), maxPoints: 8,
+      evidence: 'Contexto pessoal/profissional: ' + (profileContext ? '4/4' : '0/4') + '; orientação identificada: ' + (profileDirection ? '4/4' : '0/4') + '. ' + (implicitProfile ? 'O percurso está descrito na formação e experiência; um resumo separado é opcional. ' : '') + preview(profileText),
       suggestion: !profileContext ? 'Escreve um perfil breve que explique o teu percurso e interesse. Uma lista de adjetivos ou apenas o título da secção não identifica o contexto.' : 'Explica que área ou oportunidade te interessa e como pretendes aplicar os teus conhecimentos. Não é preciso usar uma frase padronizada.',
       example: 'Estrutura a adaptar: “Estudante de [curso], com interesse em [área]. Pretendo aplicar [conhecimentos] em [oportunidade].”',
     },

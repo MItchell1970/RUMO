@@ -11,11 +11,11 @@ const fields = [
   { id: 'name', label: 'Nome', placeholder: 'O teu nome', rows: 1 },
   { id: 'headline', label: 'Título profissional ou área', placeholder: 'Ex.: Estudante de Economia', rows: 1 },
   { id: 'contact', label: 'Contactos', placeholder: 'Email · telefone ou ligação profissional, se relevante', rows: 2 },
-  { id: 'profile', label: 'Perfil', placeholder: 'O teu percurso, o que sabes fazer e a oportunidade que procuras.', rows: 5, hint: 'Apresenta-te em duas ou três frases claras. Liga o teu percurso ao próximo passo.' },
-  { id: 'education', label: 'Formação', placeholder: 'Curso — instituição\nDatas ou estado atual', rows: 5, hint: 'Identifica o curso, a instituição e as datas. Inclui formação relevante para a candidatura.' },
-  { id: 'experience', label: 'Experiência e projetos', placeholder: 'Função ou projeto — organização\nDatas\nO que fizeste e o que entregaste.', rows: 8, hint: 'Projetos de faculdade e voluntariado também contam. Explica a tua ação e uma entrega ou resultado real.' },
-  { id: 'skills', label: 'Competências', placeholder: 'Ferramenta ou capacidade: o que sabes fazer com ela.', rows: 5, hint: 'Em vez de uma lista de palavras, acrescenta uma aplicação concreta. Indica idiomas e níveis se forem relevantes.' },
-  { id: 'extra', label: 'Outras informações', placeholder: 'Certificações, idiomas ou informação relevante que não ficou nas outras secções.', rows: 5, hint: 'Mantivemos aqui o texto não classificado. Move-o para a secção certa ou conserva-o, se for relevante.' },
+  { id: 'profile', label: 'Perfil', placeholder: 'O teu percurso e a área que procuras.', rows: 4, hint: 'Um resumo breve, se fizer sentido para o teu CV.' },
+  { id: 'education', label: 'Formação', placeholder: 'Curso — instituição\nDatas', rows: 6, hint: 'Curso, instituição e datas.' },
+  { id: 'experience', label: 'Experiência e projetos', placeholder: 'Função — organização\nDatas\nO teu contributo.', rows: 10, hint: 'Mantém os títulos e uma tarefa por ponto.' },
+  { id: 'skills', label: 'Competências', placeholder: 'Competência: aplicação prática.', rows: 5, hint: 'Ferramentas, aplicações e idiomas.' },
+  { id: 'extra', label: 'Outras informações', placeholder: 'Outras informações relevantes.', rows: 5, hint: 'Confirma se esta informação está na secção certa.' },
 ];
 const state = {
   step: 1, version: 0, busy: false, inputMeta: null, inputName: '', original: null,
@@ -44,6 +44,7 @@ function error(message) {
 function showStep(step, focus = true) {
   if (step > 1 && !state.original) return;
   state.step = step;
+  document.body.dataset.step = String(step);
   for (let n = 1; n <= 3; n++) {
     $(`panel-${n}`).hidden = n !== step;
     $(`step-${n}`).classList.toggle('active', n === step);
@@ -86,6 +87,7 @@ function resetAll() {
   state.inputMeta = null;
   state.inputName = '';
   $('cv-form').reset();
+  $('job-text').value = '';
   $('file-status').textContent = '';
   updateCount();
   showStep(1);
@@ -135,7 +137,7 @@ async function analyzeOriginal() {
     return;
   }
   const version = ++state.version;
-  busy(true, 'A analisar conteúdo, estrutura, escrita e apresentação…');
+  busy(true, 'A analisar o teu currículo…');
   try {
     const writing = await checkWriting(text);
     if (version !== state.version) return;
@@ -146,7 +148,7 @@ async function analyzeOriginal() {
     state.draftWriting = null;
     state.ignoredWords.clear();
     renderDiagnosis();
-    busy(false, 'Diagnóstico concluído. Começa pelas melhorias com maior impacto.');
+    busy(false, 'Análise concluída.');
     showStep(2);
   } catch (e) {
     if (version !== state.version) return;
@@ -157,7 +159,7 @@ async function analyzeOriginal() {
 
 function summaryHTML(result, metadata) {
   const missing = 100 - result.score;
-  return `<div class="score-card"><span class="eyebrow">PREPARAÇÃO DO CURRÍCULO</span><div class="score-main"><h3>${result.score >= 85 ? 'Uma boa base para avançar.' : 'Já sabes por onde começar.'}</h3><div class="score-ring" style="--score:${result.score}" role="img" aria-label="${result.score} pontos em 100"><div><b>${result.score}</b><small>de 100</small></div></div></div><p>${missing ? `Há <strong>${missing} pontos</strong> por completar nesta lista.` : 'Cumpriste todos os critérios desta versão da Rumo.'}${!metadata ? ' <strong>15 pontos</strong> de apresentação ainda não foram medidos.' : ''}</p></div><p class="score-caveat">Uma orientação para melhorar o documento. Não prevê contratação nem substitui a revisão humana.</p><div class="group-breakdown"><h4>A tua pontuação, por área</h4>${result.groups.map(group => `<div class="group-row"><div><span>${esc(group.label)}</span><b>${group.points} / ${group.maxPoints}</b></div><div class="bar"><i style="width:${group.points / group.maxPoints * 100}%"></i></div></div>`).join('')}</div>`;
+  return `<div class="score-card"><div class="score-value">${result.score}<small>/100</small></div><div class="score-description"><h2>${result.score >= 85 ? 'Uma boa base.' : 'Há espaço para melhorar.'}</h2><p>${missing ? missing + ' pontos por melhorar.' : 'Todos os critérios verificados foram cumpridos.'}</p></div></div><div class="group-breakdown">${result.groups.map(group => `<div class="group-row"><div><span>${esc(group.label.replace(' do PDF',''))}</span><b>${group.points}/${group.maxPoints}</b></div><div class="bar"><i style="width:${group.points/group.maxPoints*100}%"></i></div></div>`).join('')}</div><p class="score-caveat">${!metadata ? 'Os 15 pontos de apresentação são medidos ao criar o PDF. ' : ''}A pontuação orienta melhorias; não prevê contratação.</p>`;
 }
 
 function prioritisedActions(result) {
@@ -167,10 +169,29 @@ function prioritisedActions(result) {
   return other.sort((a, b) => b.gain - a.gain);
 }
 
+function shortAction(item) {
+  const map = {
+    contact: ['Completar o contacto', 'Inclui um email ou telefone válido.'],
+    profile: ['Apresentar o teu percurso', 'Explica a tua área e a experiência relevante.'],
+    education: ['Completar a formação', 'Acrescenta curso, instituição e datas.'],
+    experience: ['Explicar a tua experiência', 'Indica onde estiveste, quando e o que fizeste.'],
+    evidence: ['Mostrar o teu contributo', 'Acrescenta uma entrega ou resultado real do teu trabalho.'],
+    skills: ['Dar contexto às competências', 'Diz como usas uma ferramenta ou competência.'],
+    sections: ['Organizar as secções', 'Separa formação, experiência e competências.'],
+    concision: ['Encurtar descrições longas', 'Usa uma ideia por frase e mantém o essencial.'],
+    repetition: ['Rever repetições', 'Confirma se há informação repetida sem necessidade.'],
+    spelling: ['Rever a escrita', 'Confirma os termos assinalados e aplica as correções úteis.'],
+    punctuation: ['Ajustar a pontuação', 'Revê os espaços e as palavras repetidas.'],
+    'layout-all': ['Melhorar a apresentação', 'O modelo Rumo alinha o texto e ajusta os espaçamentos.'],
+  };
+  return map[item.id] || (item.kind === 'writing' ? map.spelling : [item.title, 'Revê esta informação no editor.']);
+}
+
 function actionsHTML(result, context = 'original') {
-  if (result.score === 100) return '<div class="success-box"><h3>Critérios concluídos.</h3><p>Confirma todos os factos, lê a versão final e adapta-a à oportunidade. O próximo passo é teu.</p></div>';
+  if (result.score === 100) return '<div class="success-box"><h3>Tudo revisto.</h3><p>Confirma os dados e faz uma última leitura.</p></div>';
   const actions = prioritisedActions(result);
-  return `<div class="section-label"><h3>${context === 'original' ? 'O caminho até aos 100' : 'O que ainda podes melhorar'}</h3><span>${actions.length} passos para rever</span></div>${actions.map((item, index) => `<details class="action-card" ${index < (context === 'original' ? 2 : 1) ? 'open' : ''}><summary><span class="action-title"><span class="action-number">${String(index + 1).padStart(2, '0')}</span><b>${esc(item.title)}</b></span><span class="gain">+${item.gain} pontos</span></summary><div class="action-content"><p>${esc(item.description)}</p>${item.example ? `<div class="action-example"><small>UMA PISTA PARA COMEÇAR</small>${esc(item.example)}</div>` : ''}<button class="text-button" type="button" data-improve="${esc(item.editorField || '')}" data-kind="${item.kind}">${item.kind === 'layout' ? 'Rever o modelo e o conteúdo' : item.kind === 'writing' ? 'Rever a escrita' : 'Melhorar no editor'} <span aria-hidden="true">↗</span></button></div></details>`).join('')}`;
+  const row = item => { const [title, description] = shortAction(item); return `<div class="action-row"><div class="action-copy"><h3>${esc(title)}</h3><p>${esc(description)}</p></div><span class="gain">+${item.gain} ${item.gain === 1 ? 'ponto' : 'pontos'}</span><button type="button" data-improve="${esc(item.editorField || '')}" data-kind="${item.kind}" aria-label="${esc(title)} no editor">↗</button></div>`; };
+  return `${context === 'editor' ? '<div class="section-label"><h3>Ainda por melhorar</h3></div>' : ''}${actions.slice(0,3).map(row).join('')}${actions.length>3 ? `<details class="more-actions"><summary>Ver mais ${actions.length-3} sugestões</summary>${actions.slice(3).map(row).join('')}</details>` : ''}`;
 }
 
 function renderDiagnosis() {
@@ -202,7 +223,7 @@ function keywordsHTML(keywords) {
 
 function buildFields() {
   const input = field => `<label class="field-label" for="field-${field.id}">${esc(field.label)}</label>${field.rows === 1 ? `<input type="text" id="field-${field.id}" data-field="${field.id}" maxlength="30000" placeholder="${esc(field.placeholder)}" value="${esc(state.model[field.id])}">` : `<textarea id="field-${field.id}" data-field="${field.id}" rows="${field.rows}" maxlength="30000" placeholder="${esc(field.placeholder)}" spellcheck="true">${esc(state.model[field.id])}</textarea>`}`;
-  $('model-fields').innerHTML = `<div class="identity-fields">${fields.slice(0, 3).map(input).join('')}</div>${fields.slice(3).map(field => `<details class="model-section" id="section-${field.id}" ${field.id === 'profile' ? 'open' : ''}><summary>${esc(field.label)}<span id="badge-${field.id}">${state.model[field.id].trim() ? 'Rever +' : 'Completar +'}</span></summary>${input(field)}<p class="hint">${esc(field.hint)}</p><div id="prompt-${field.id}"></div></details>`).join('')}`;
+  $('model-fields').innerHTML = `<div class="identity-fields">${fields.slice(0, 3).map(input).join('')}</div>${fields.slice(3).map(field => `<details class="model-section" id="section-${field.id}" ${''}><summary>${esc(field.label)}<span id="badge-${field.id}">${state.model[field.id].trim() ? 'Rever +' : 'Completar +'}</span></summary>${input(field)}<p class="hint">${esc(field.hint)}</p><div id="prompt-${field.id}"></div></details>`).join('')}`;
   $('unassigned-notice').hidden = !state.model.extra.trim();
 }
 
@@ -243,7 +264,7 @@ function markDraftChanged() {
   $('preview-stale').hidden = !state.generated;
   $('export-notice').textContent = 'Atualiza o PDF para aplicar as alterações e voltar a medir a pontuação.';
   $('editor-next').innerHTML = '';
-  busy(false, 'Alterações por aplicar. Atualiza o PDF e a pontuação quando estiveres pronto.');
+  busy(false, 'Alterações por aplicar.');
   error('');
   renderComparison();
 }
@@ -251,8 +272,7 @@ function markDraftChanged() {
 function renderComparison() {
   const current = state.generated?.revision === state.revision ? state.generated.result : null;
   const original = state.original.result.score;
-  const delta = current ? current.score - original : 0;
-  $('comparison').innerHTML = `<div class="comparison-score"><span>Original</span><b>${original}<small> /100</small></b></div><span class="comparison-arrow" aria-hidden="true">→</span><div class="comparison-score"><span>Novo PDF</span><b>${current ? current.score : '—'}<small> /100</small></b></div><div class="comparison-description"><b>${current ? delta > 0 ? `Mais ${delta} pontos. Um passo em frente.` : delta < 0 ? 'A nova versão precisa de mais atenção.' : 'Uma nova apresentação. A mesma pontuação.' : 'A pontuação acompanha o documento real.'}</b><p>${current ? current.score === 100 ? 'Cumpriste os critérios da ferramenta. Confirma os factos e a leitura final.' : `Faltam ${100 - current.score} pontos. Encontras os próximos passos por baixo da pré-visualização.` : 'Atualiza o PDF para avaliar o conteúdo e a apresentação desta versão.'}</p></div>`;
+  $('comparison').innerHTML = `<div class="comparison-score"><span>Original</span><b>${original}<small>/100</small></b></div><span class="comparison-arrow" aria-hidden="true">→</span><div class="comparison-score"><span>Nova versão</span><b>${current ? current.score : '—'}<small>/100</small></b></div><div class="comparison-description"><b>${current ? current.score === 100 ? 'Critérios concluídos.' : (100-current.score) + ' pontos por melhorar.' : 'Alterações por aplicar.'}</b><p>${current ? 'Revê o conteúdo e descarrega o PDF.' : 'Atualiza o PDF para ver a nova pontuação.'}</p></div>`;
 }
 
 async function regenerate() {
@@ -263,9 +283,9 @@ async function regenerate() {
   try { analyzeCV(serialized); } catch (e) { error(e.message); return; }
   const revision = state.revision;
   const version = ++state.version;
-  const template = document.querySelector('input[name="template"]:checked').value;
+  const template = 'rumo';
   $('download-pdf').disabled = true;
-  busy(true, 'A criar o PDF e a verificar a nova versão…');
+  busy(true, 'A preparar a nova versão…');
   try {
     const { createCVPdf } = await import('./pdf-export.js');
     const pdf = await createCVPdf(model, { template });
@@ -287,8 +307,8 @@ async function regenerate() {
     $('editor-next').innerHTML = actionsHTML(result, 'editor');
     $('preview-stale').hidden = true;
     $('preview-status').textContent = `${pdf.pageCount} página${pdf.pageCount === 1 ? '' : 's'}`;
-    $('export-notice').textContent = result.score === 100 ? 'Critérios concluídos. Faz uma última leitura antes de enviar o currículo.' : `Podes descarregar já esta versão. Os ${100 - result.score} pontos em falta continuam assinalados; não acrescentámos factos por ti.`;
-    $('preview-caption').textContent = 'Pré-visualização do ficheiro real, com texto selecionável no PDF descarregado.';
+    $('export-notice').textContent = 'Confirma os dados antes de enviar a candidatura.';
+    $('preview-caption').textContent = pdf.fitInfo?.message || 'O ficheiro descarregado tem esta apresentação.';
     try { await renderPDF(pdf.bytes, version); } catch (previewError) {
       if (version === state.version) {
         $('pdf-pages').replaceChildren();
@@ -339,7 +359,7 @@ function updateEditorPrompts(result) {
   for (const field of fields.slice(3)) {
     const improvements = result.improvements.filter(item => item.editorField === field.id);
     $(`badge-${field.id}`).textContent = improvements.length ? `+${improvements.reduce((sum, item) => sum + item.gain, 0)} pontos por melhorar` : state.model[field.id].trim() ? 'Rever +' : 'Opcional +';
-    $(`prompt-${field.id}`).innerHTML = improvements.length ? `<p class="field-prompt">${esc(improvements.map(item => item.description).join(' '))}</p>` : '';
+    $(`prompt-${field.id}`).innerHTML = improvements.length ? `<p class="field-prompt">${esc(improvements.map(item => shortAction(item)[1]).join(' '))}</p>` : '';
   }
 }
 
@@ -408,7 +428,6 @@ function downloadPlan() {
   download(text, 'text/plain;charset=utf-8', 'rumo-plano-de-melhoria.txt');
 }
 
-$('hero-example').addEventListener('click', useExample);
 $('use-example').addEventListener('click', useExample);
 $('new-cv').addEventListener('click', resetAll);
 $('cv-form').addEventListener('submit', event => { event.preventDefault(); analyzeOriginal(); });
@@ -440,7 +459,6 @@ $('model-fields').addEventListener('input', event => {
   state.model[field] = event.target.value;
   markDraftChanged();
 });
-document.querySelectorAll('input[name="template"]').forEach(input => input.addEventListener('change', () => { if (state.model) { markDraftChanged(); regenerate(); } }));
 $('workspace').addEventListener('click', event => {
   const improve = event.target.closest('[data-improve]');
   if (improve) openEditor(improve.dataset.improve, improve.dataset.kind);

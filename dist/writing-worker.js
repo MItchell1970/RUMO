@@ -23,7 +23,7 @@ const ALLOWLIST = new Set(`
   econometria microeconomia macroeconomia pró-ativo pró-ativa proativo proativa
 `.trim().split(/\s+/));
 
-// Ranking only: a candidate still has to be accepted by the PT-PT dictionary.
+// Ranking only: a candidate still has to be accepted by a bundled dictionary.
 const CV_VOCABULARY = new Set(`
   experiência experiências formação académica académico académicos profissional profissionais
   competência competências responsabilidade responsabilidades organização comunicação
@@ -38,19 +38,48 @@ const CV_VOCABULARY = new Set(`
   preparei colaborei criei realizei acompanhei apoiei trabalhei geri contribuí
   analisar desenvolver organizar coordenar elaborar apresentar implementar participar
   preparar colaborar criar realizar acompanhar apoiar trabalhar gerir contribuir
+  experience education skills communication management responsibility responsibilities
+  analysis research accounting economics finance financial reporting forecasting
+  development project projects internship internships certification certifications
+  leadership teamwork organisation organization organised organized analysed analyzed
+  developed implemented coordinated prepared presented managed delivered supported
 `.trim().split(/\s+/));
 
 async function getDictionary() {
   if (!dictionaryPromise) {
-    dictionaryPromise = Promise.all(['./vendor/pt-PT.aff', './vendor/pt-PT.dic'].map(async (path) => {
-      const response = await fetch(new URL(path, self.location.href));
-      if (!response.ok) throw new Error('dictionary unavailable');
-      return response.text();
-    })).then(([aff, dic]) => {
-      if (!aff.startsWith('SET UTF-8') || !/^\d+\s/m.test(dic)) throw new Error('invalid dictionary');
-      const dictionary = new Typo('pt_PT', aff, dic);
-      if (!dictionary.check('economia') || dictionary.check('responsablidade')) throw new Error('dictionary validation failed');
+    const resources = [
+      { code: 'pt_PT', file: 'pt-PT', valid: 'economia', invalid: 'responsablidade' },
+      { code: 'en_US', file: 'en_US', valid: 'organized', invalid: 'managment' },
+      { code: 'en_GB', file: 'en_GB', valid: 'organised', invalid: 'managment' },
+    ];
+    dictionaryPromise = Promise.all(resources.map(async ({ code, file, valid, invalid }) => {
+      const [aff, dic] = await Promise.all(['aff', 'dic'].map(async (extension) => {
+        const response = await fetch(new URL(`./vendor/${file}.${extension}`, self.location.href));
+        if (!response.ok) throw new Error('dictionary unavailable');
+        return (await response.text()).replace(/^\uFEFF/, '');
+      }));
+      if (!/^SET UTF-8\s*$/m.test(aff) || !/^\d+\s/m.test(dic)) throw new Error('invalid dictionary');
+      const dictionary = new Typo(code, aff, dic);
+      if (!dictionary.check(valid) || dictionary.check(invalid)) throw new Error('dictionary validation failed');
       return dictionary;
+    })).then((dictionaries) => {
+      // Accept either language word by word: no whole-document language guess.
+      // Memoization also bounds repeated checks made while generating suggestions.
+      const cache = new Map();
+      const checkSingle = (value) => {
+        if (!cache.has(value)) {
+          if (cache.size >= 20000) cache.clear();
+          cache.set(value, ALLOWLIST.has(normalizeWord(value)) || dictionaries.some(dictionary => dictionary.check(value)));
+        }
+        return cache.get(value);
+      };
+      return { check(value) {
+        const normalized = value.normalize('NFC').replace(/’/g, "'");
+        if (checkSingle(normalized)) return true;
+        // Ordinary English compounds are valid when all their words are valid.
+        // This supports phrases such as data-driven and cross-functional.
+        return normalized.includes('-') && normalized.split('-').every(part => part.length > 0 && checkSingle(part));
+      } };
     }).catch((error) => { dictionaryPromise = undefined; throw error; });
   }
   return dictionaryPromise;
@@ -156,7 +185,7 @@ function scanWriting(text, ignoredWords, dictionary) {
     add({ id: `spelling-${match.index}`, word: original, kind: 'spelling',
       message: suggestions.length
         ? `Possível lapso em «${original}». Confirma a grafia no contexto.`
-        : `«${original}» não consta do dicionário. Confirma se é um nome próprio, um termo técnico ou um lapso.`,
+        : `«${original}» não consta dos dicionários de português ou inglês. Confirma se é um nome próprio, um termo técnico ou um lapso.`,
       suggestions: suggestions.map((candidate) => allCaps ? candidate.toLocaleUpperCase('pt-PT')
         : capitalized ? candidate[0].toLocaleUpperCase('pt-PT') + candidate.slice(1) : candidate),
       offset: match.index, length: original.length });
@@ -175,6 +204,6 @@ self.addEventListener('message', async ({ data }) => {
     const ignored = ignoredWords.filter((word) => typeof word === 'string' && word.length <= 60).slice(0, 500);
     self.postMessage({ id, result: scanWriting(text, ignored, dictionary) });
   } catch {
-    self.postMessage({ id, result: { ready: false, issues: [], error: 'Não foi possível carregar o dicionário de português de Portugal. Tenta novamente.' } });
+    self.postMessage({ id, result: { ready: false, issues: [], error: 'Não foi possível carregar os dicionários de português e inglês. Tenta novamente.' } });
   }
 });

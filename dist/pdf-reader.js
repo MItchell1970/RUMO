@@ -245,7 +245,7 @@ function cleanText(text) {
   return cleaned;
 }
 
-function pageText(items, remaining) {
+function streamText(items, remaining) {
   let text = '';
   let previousBaseline = null;
   let previousEnd = null;
@@ -269,6 +269,72 @@ function pageText(items, remaining) {
     previousEnd = start !== null && Number.isFinite(item.width) ? start + Math.abs(item.width) : null;
   }
   return text;
+}
+
+/** Reconstruct geometric lines, preserving tab-aligned dates and independent columns. */
+export function extractPdfPageText(items, remaining = MAX_CHARACTERS) {
+  const visible = items.filter(item => typeof item?.str === 'string' && item.str.trim());
+  const horizontal = item => item.transform?.length >= 6 && Array.from(item.transform).every(Number.isFinite)
+    && Math.abs(item.transform[1]) < 0.01 && Math.abs(item.transform[2]) < 0.01 && positive(item.transform[3]) && Number.isFinite(item.width);
+  if (!visible.length || !visible.every(horizontal)) return streamText(items, remaining);
+  const rows = [];
+  for (const item of [...visible].sort((a, b) => b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4])) {
+    let row = rows.at(-1);
+    if (!row || Math.abs(row.y - item.transform[5]) > Math.min(3, item.transform[3] * 0.25)) {
+      row = { y: item.transform[5], items: [] }; rows.push(row);
+    }
+    row.items.push(item);
+  }
+  rows.forEach(row => row.items.sort((a, b) => a.transform[4] - b.transform[4]));
+  const x0 = item => item.transform[4];
+  const x1 = item => x0(item) + Math.abs(item.width);
+  const candidates = new Set();
+  for (const row of rows) for (let i = 1; i < row.items.length; i++) {
+    const gap = x0(row.items[i]) - x1(row.items[i - 1]);
+    if (gap >= 24) candidates.add(Math.round((x0(row.items[i]) + x1(row.items[i - 1])) / 20) * 10);
+  }
+  let gutter = null;
+  let best = 0;
+  for (const split of [...candidates].slice(0, 200)) {
+    let leftCount = 0, rightCount = 0, rightLong = 0, crossings = 0, paired = 0;
+    for (const row of rows) {
+      if (row.items.some(item => x0(item) < split && x1(item) > split)) { crossings++; continue; }
+      const left = row.items.filter(item => x1(item) <= split).map(item => item.str).join(' ');
+      const right = row.items.filter(item => x0(item) >= split).map(item => item.str).join(' ');
+      leftCount += left.length; rightCount += right.length;
+      if (left && right) paired++;
+      if (right.length >= 40 && (right.match(/\p{L}+/gu) || []).length >= 7) rightLong++;
+    }
+    // A short rail of dates/locations is not an independent column.
+    if (leftCount >= 100 && rightCount >= 120 && rightLong >= 3 && paired >= 3 && crossings <= rows.length * 0.30 && rightCount > best) { gutter = split; best = rightCount; }
+  }
+  const line = runs => {
+    let text = '', previous = null;
+    for (const item of runs) {
+      const gap = previous ? x0(item) - x1(previous) : 0;
+      if (previous && !/\s$/.test(text) && !/^\s/.test(item.str)) {
+        if (gap > Math.max(24, item.transform[3] * 2.5)) text += '\t';
+        else if (gap > item.transform[3] * 0.10 || gap < -item.transform[3]) text += ' ';
+      }
+      text += item.str; previous = item;
+    }
+    return text.trim();
+  };
+  const output = [];
+  let left = [], right = [];
+  const flush = () => { output.push(...left, ...right); left = []; right = []; };
+  for (const row of rows) {
+    if (gutter === null || row.items.some(item => x0(item) < gutter && x1(item) > gutter)) { flush(); output.push(line(row.items)); }
+    else {
+      const a = line(row.items.filter(item => x1(item) <= gutter));
+      const b = line(row.items.filter(item => x0(item) >= gutter));
+      if (a) left.push(a); if (b) right.push(b);
+    }
+  }
+  flush();
+  const result = output.join('\n');
+  if (result.length > remaining) throw tooMuchText();
+  return result;
 }
 
 async function readPdf(file, deadline) {
@@ -298,7 +364,7 @@ async function readPdf(file, deadline) {
       try {
         const content = await wait(page.getTextContent());
         if (pageNumber > 1) text += '\n\n';
-        text += pageText(content.items, MAX_CHARACTERS - text.length);
+        text += extractPdfPageText(content.items, MAX_CHARACTERS - text.length);
         const unit = positive(page.userUnit) ? page.userUnit : 1;
         // PDF.js includes userUnit in viewport.scale. Cancel it here so the
         // metadata function performs the conversion to points exactly once.
@@ -342,16 +408,22 @@ async function readPdf(file, deadline) {
   }
 }
 
-/** Import a user-selected PDF or UTF-8 TXT; content is never uploaded. */
+/** Import a user-selected PDF, DOCX or UTF-8 TXT; content is never uploaded. */
 export async function readCVFile(file) {
   if (!file || typeof file.name !== 'string' || !Number.isFinite(file.size) || file.size < 0) {
-    throw problem('Escolhe um ficheiro PDF ou TXT. Também podes colar o texto diretamente.');
+    throw problem('Escolhe um ficheiro PDF, DOCX ou TXT. Também podes colar o texto diretamente.');
   }
-  if (!/\.(?:pdf|txt)$/i.test(file.name)) throw problem('Escolhe um ficheiro PDF ou TXT. Também podes colar o texto diretamente.');
+  if (!/\.(?:pdf|docx|txt)$/i.test(file.name)) throw problem('Escolhe um ficheiro PDF, DOCX ou TXT. Também podes colar o texto diretamente.');
   if (file.size > MAX_BYTES) throw problem('O ficheiro ultrapassa 5 MB. Escolhe uma versão mais pequena ou cola o texto do CV.');
   if (!file.size) throw problem('O ficheiro está vazio. Escolhe outro ficheiro ou cola o texto do currículo.');
   const deadline = Date.now() + READ_TIMEOUT_MS;
   try {
+    if (/\.docx$/i.test(file.name)) {
+      const { extractDocxText } = await withDeadline(import('./docx-reader.js'), deadline);
+      const bytes = new Uint8Array(await withDeadline(file.arrayBuffer(), deadline));
+      try { return { text: cleanText(extractDocxText(bytes)), metadata: null, name: file.name, kind: 'docx' }; }
+      catch (error) { throw problem(error.message || 'Não foi possível ler este DOCX.'); }
+    }
     if (/\.txt$/i.test(file.name)) {
       const original = await withDeadline(file.text(), deadline);
       if (original.includes('\0') || original.includes('\uFFFD')) {

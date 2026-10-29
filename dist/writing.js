@@ -1,4 +1,4 @@
-/** Local PT-PT spelling checks. CV text is passed only to a local Web Worker. */
+/** Local PT-PT and English spelling checks. CV text stays in a local Web Worker. */
 let worker;
 let sequence = 0;
 const pending = new Map();

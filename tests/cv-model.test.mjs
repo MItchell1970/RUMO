@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CV_FIELDS, parseCV, normalizeModel, serializeCV } from '../dist/cv-model.js';
+import { CV_FIELDS, parseCV, normalizeModel, serializeCV, detectCVLanguage } from '../dist/cv-model.js';
 
 test('empty content stays empty, without fabricated names or facts', () => {
   assert.deepEqual(Object.keys(parseCV('')), CV_FIELDS);
@@ -48,4 +48,18 @@ test('all freeform lines survive parse and serialize even with unfamiliar headin
   const original = 'João Oliveira\nContacto: joao@example.pt\nPerfil\nTexto livre com 3 números e & caracteres.\nBOLSAS\nBolsa de estudo com apoio integral.\nFormação\nMestrado 2025\nInvestigação especial:\nNota privada do próprio autor.';
   const text = serializeCV(parseCV(original));
   for (const fragment of ['João Oliveira', 'joao@example.pt', 'Texto livre com 3 números e & caracteres.', 'BOLSAS', 'Bolsa de estudo com apoio integral.', 'Mestrado 2025', 'Investigação especial:', 'Nota privada do próprio autor.']) assert.ok(text.includes(fragment), fragment);
+});
+
+test('English finance format preserves identity, paired dates and separate voluntary headings', () => {
+  const text = 'ANA COSTA\tLisbon, Portugal\nana@example.pt\t+351 912 345 678\nEDUCATION\nExample University\tPorto, Portugal\nBachelor in Economics\t2023 - 2026\nWORK EXPERIENCE\nEXAMPLE BANK\tLondon\nAnalyst intern\t2025\nAnalysed economic data and delivered a report.\nLEADERSHIP\nStudent society coordinator\nVOLUNTARY WORK\nOrganised training for volunteers.\nADDITIONAL INFORMATION\nSkills: Excel and financial modeling\nCertifications: English certificate\nInterests: swimming';
+  const model = parseCV(text);
+  assert.equal(model.name,'ANA COSTA');
+  assert.match(model.contact,/Lisbon, Portugal/);
+  assert.match(model.contact,/ana@example.pt\t\+351/);
+  assert.match(model.education,/Bachelor in Economics\t2023 - 2026/);
+  assert.match(model.experience,/LEADERSHIP\nStudent society/);
+  assert.match(model.experience,/VOLUNTARY WORK\nOrganised/);
+  assert.match(model.extra,/Skills: Excel/);assert.match(model.extra,/Certifications: English/);
+  assert.equal(detectCVLanguage(text),'en');
+  assert.match(serializeCV(model),/Education\n/);
 });

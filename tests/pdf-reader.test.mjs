@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getPdfMetadata, readCVFile } from '../dist/pdf-reader.js';
+import { getPdfMetadata, readCVFile, extractPdfPageText } from '../dist/pdf-reader.js';
 
 const run = (str, size, extra = {}) => ({ str, transform: [size, 0, 0, size, 50, 700], ...extra });
 const metadata = (known) => ({ pageCount: 1, bodyFontSize: null, smallTextRatio: null, minMarginPt: null, tightLineRatio: null, textDensity: null, fontFamilyCount: null, ...known });
@@ -153,11 +153,31 @@ test('TXT import keeps Portuguese, normalises line endings and has no invented P
 });
 
 test('unsupported extensions, empty files, byte limits, text limits and encoding errors are explicit', async () => {
-  await assert.rejects(readCVFile(new File(['abc'], 'cv.docx')), /PDF ou TXT/);
+  await assert.rejects(readCVFile(new File(['abc'], 'cv.doc')), /PDF, DOCX ou TXT/);
+  await assert.rejects(readCVFile(new File(['abc'], 'cv.docx')), /DOCX/);
   await assert.rejects(readCVFile(new File([], 'cv.txt')), /vazio/);
   await assert.rejects(readCVFile({ name: 'cv.pdf', size: 5 * 1024 * 1024 + 1 }), /5 MB/);
   await assert.rejects(readCVFile(new File(['a'.repeat(30001)], 'cv.txt')), /30 000/);
   await assert.rejects(readCVFile(new File(['abc\0def'], 'cv.txt')), /UTF-8/);
   await assert.rejects(readCVFile(new File(['texto simples'], 'cv.pdf')), /PDF válido/);
-  await assert.rejects(readCVFile(null), /PDF ou TXT/);
+  await assert.rejects(readCVFile(null), /PDF, DOCX ou TXT/);
+});
+
+test('PDF reconstruction orders split words geometrically without concatenating separated words', () => {
+  const items = [textItem(120, 700, 35, 11, { str:'dados' }), textItem(54, 700, 31, 11, { str:'Aná' }), textItem(85, 700, 21, 11, { str:'lise' }), textItem(108, 700, 10, 11, {str:'de'})];
+  assert.equal(extractPdfPageText(items), 'Análise de dados');
+});
+test('PDF short right rail remains paired with employer and dates', () => {
+  const items = [textItem(380, 700, 70, 11, {str:'Lisboa'}),textItem(54, 700, 140, 11, {str:'EMPRESA EXEMPLO'}),textItem(54, 685, 170, 11, {str:'Analista de dados'}),textItem(380, 685, 80, 11, {str:'2024 - 2025'})];
+  assert.equal(extractPdfPageText(items), 'EMPRESA EXEMPLO\tLisboa\nAnalista de dados\t2024 - 2025');
+});
+test('PDF independent columns are read top-to-bottom rather than interleaved', () => {
+  const items = [];
+  for (let index=0; index<4; index++) {
+    items.push(textItem(54,700-index*15,200,11,{str:`Esquerda ${index}: descrição extensa do percurso académico e profissional.`}));
+    items.push(textItem(320,700-index*15,210,11,{str:`Direita ${index}: descrição extensa de competências e projetos realizados.`}));
+  }
+  const text = extractPdfPageText(items.reverse());
+  assert.ok(text.indexOf('Esquerda 3') < text.indexOf('Direita 0'));
+  assert.ok(text.indexOf('Direita 0') < text.indexOf('Direita 3'));
 });

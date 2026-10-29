@@ -49,7 +49,7 @@ test('Portugal vocabulary, software, names, acronyms, URLs and emails do not pro
   const result = await check('Formação académica: licenciatura em Economia. Projetos, equipa e objetivos. Maria Kozlovska, Excel, Python, SQL, PowerBI, ReactJS, HTML5. maria@responsablidade.example https://example.com/experiênçia www.example.com/zzz github.com/mispelt.');
   assert.equal(result.ready, true);
   assert.equal(result.issues.length, 0, JSON.stringify(result.issues));
-  assert.equal(fetched.length, 2, 'the worker keeps its loaded dictionary');
+  assert.equal(fetched.length, 6, 'the worker keeps its three loaded dictionaries');
 });
 
 test('capitalised CV headings still get relevant suggestions', async () => {
@@ -64,6 +64,31 @@ test('capitalised action verbs are checked without treating them as proper names
   assert.equal(result.issues.length, 1);
   assert.equal(result.issues[0].word, 'Analizei');
   assert.ok(result.issues[0].suggestions.includes('Analisei'));
+});
+
+test('accepts Portuguese and English within the same sentence without a language switch', async () => {
+  const result = await check('Experiência em financial reporting, procurement e análise quantitativa. Desenvolvi spreadsheets para forecast accuracy, cash flow e business development. Comunicação com stakeholders e cumprimento de deadlines.');
+  assert.equal(result.ready, true);
+  assert.equal(result.issues.length, 0, JSON.stringify(result.issues));
+});
+
+test('accepts British and American spelling, English inflections and common compounds', async () => {
+  const result = await check('Analysed and analyzed budgets; organised and organized activities. Modelling and modeling scenarios. Led cross-functional teams and data-driven decision-making. Completed a master’s degree. Built python-based models and powerbi-based reports.');
+  assert.equal(result.issues.length, 0, JSON.stringify(result.issues));
+});
+
+test('mixed-language checks still detect real English and Portuguese typos', async () => {
+  const text = 'Responsablidade na equipa e financial managment. Experiênçia e projetcs internacionais.';
+  const result = await check(text);
+  assert.deepEqual(Array.from(result.issues, issue => issue.word), ['Responsablidade', 'managment', 'Experiênçia', 'projetcs']);
+  assert.ok(result.issues.find(issue => issue.word === 'managment').suggestions.includes('management'));
+  assert.ok(result.issues.find(issue => issue.word === 'projetcs').suggestions.includes('projects'));
+  for (const issue of result.issues) assert.equal(text.slice(issue.offset, issue.offset + issue.length), issue.word);
+});
+
+test('an English-looking compound cannot hide an unknown or misspelled component', async () => {
+  const result = await check('data-driven responziblity-driven');
+  assert.deepEqual(Array.from(result.issues, issue => issue.word), ['responziblity-driven']);
 });
 
 test('punctuation and repeated words retain original offsets, including accented words', async () => {
@@ -119,6 +144,18 @@ test('dictionary loading failure is reported and a later attempt can recover', a
   const recovered = await check('economia');
   assert.equal(recovered.ready, true);
   assert.equal(recovered.issues.length, 0);
+});
+
+test('a missing English dictionary never produces a Portuguese-only successful review', async () => {
+  vm.runInContext('dictionaryPromise = undefined;', sandbox);
+  const originalFetch = sandbox.fetch;
+  sandbox.fetch = async url => url.href.endsWith('en_GB.dic') ? { ok: false } : originalFetch(url);
+  const failed = await check('financial reporting');
+  assert.equal(failed.ready, false);
+  assert.equal(failed.issues.length, 0);
+  assert.match(failed.error, /português e inglês/);
+  sandbox.fetch = originalFetch;
+  assert.equal((await check('financial reporting')).ready, true);
 });
 
 test('a long text at the input limit remains bounded and has accurate issue offsets', async () => {

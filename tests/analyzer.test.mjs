@@ -11,6 +11,17 @@ const ready = {writingReady:true,pdfMeta:goodPdf};
 const replaceProject = content => exampleCV.replace(/Projetos académicos\n[\s\S]*?\n\nCompetências/, 'Projetos académicos\n' + content + '\n\nCompetências');
 const addProjectSentence = sentence => exampleCV.replace('A minha responsabilidade foi', sentence + ' A minha responsabilidade foi');
 
+test('English headings and factual contributions receive equivalent content credit without requiring a summary', () => {
+  const text = `ANA COSTA\nana@example.pt\nEDUCATION\nBachelor in Economics, Example University, 2023 - 2026.\nWORK EXPERIENCE\nExample Bank, analyst intern, 2025. Analysed economic indicators and delivered a report with clear findings for the team.\nLEADERSHIP\nCoordinated a student society project and organised training workshops for new members.\nADDITIONAL INFORMATION\nSkills: Excel: data analysis, pivot tables and financial models.\nLanguages: English and Portuguese.\nInterests: reading and swimming.`;
+  const result = analyzeCV(text, ready);
+  assert.equal(group(result,'content').points,60);
+  assert.equal(criterion(result,'profile').points,8);
+  assert.match(criterion(result,'profile').evidence,/resumo separado é opcional/);
+  assert.equal(criterion(result,'experience').points,14);
+  assert.equal(criterion(result,'evidence').points,10);
+  assert.equal(criterion(result,'sections').points,7);
+});
+
 test('valida tipo, mínimo de palavras e limite de caracteres', () => {
   for (const text of ['', 'O meu CV', undefined, null, 123]) assert.throws(() => analyzeCV(text), /40 palavras/);
   assert.throws(() => analyzeCV('a'.repeat(30001)), /30 000 caracteres/);

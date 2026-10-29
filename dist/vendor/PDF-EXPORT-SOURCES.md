@@ -14,6 +14,18 @@ the CV or contact an external API.
   Licenses: `pako-LICENSE.txt`. Source: https://github.com/nodeca/pako.
 - `LiberationSans-Regular.ttf`, `LiberationSans-Bold.ttf`: Liberation Sans.
   Font license and upstream notices: `LiberationSans-LICENSE.txt`.
+- `LiberationSerif-Regular.ttf`, `LiberationSerif-Bold.ttf`,
+  `LiberationSerif-Italic.ttf`: Liberation Serif 2.1.5, used by the Rumo template.
+  SIL Open Font License 1.1; see `LiberationSerif-LICENSE.txt`.
+  Official release: https://github.com/liberationfonts/liberation-fonts/releases/tag/2.1.5.
+  Archive: https://github.com/liberationfonts/liberation-fonts/files/7261482/liberation-fonts-ttf-2.1.5.tar.gz.
+
+The single template follows the supplied reference's Letter page, 36-point
+margins, serif typography, underlined headings, and aligned dates and places.
+Liberation Serif is a metric-compatible substitute for Times New Roman; this
+is a reusable recreation, not a pixel-identical Word renderer. It adjusts
+spacing before body type (12 down to 10 points), preserves all supplied text,
+and uses additional pages at 12 points if a readable one-page layout cannot fit.
 
 The export validates every character against the embedded font before writing
 the PDF. Unsupported characters cause an explicit error rather than silently
