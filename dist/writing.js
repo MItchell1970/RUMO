@@ -17,7 +17,7 @@ function stopWorker(message) {
 
 function getWorker() {
   if (worker) return worker;
-  worker = new Worker(new URL('./writing-worker.js', import.meta.url));
+  worker = new Worker(new URL('./writing-worker.js?v=4.0.1', import.meta.url));
   worker.addEventListener('message', ({ data }) => {
     const entry = pending.get(data?.id);
     if (!entry) return;

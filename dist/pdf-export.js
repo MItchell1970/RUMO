@@ -1,6 +1,6 @@
 import { PDFDocument, rgb } from './vendor/pdf-lib.min.mjs';
 import fontkit from './vendor/fontkit.min.mjs';
-import { normalizeModel, serializeCV, detectCVLanguage } from './cv-model.js';
+import { normalizeModel, serializeCV, detectCVLanguage } from './cv-model.js?v=4.0.1';
 
 // The supplied Word reference uses Letter, half-inch margins and Times New
 // Roman. Liberation Serif is its openly licensed, metric-compatible substitute.

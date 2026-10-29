@@ -1,7 +1,7 @@
-import { analyzeCV, exampleCV } from './analyzer.js';
-import { checkWriting, clearWriting } from './writing.js';
-import { readCVFile } from './pdf-reader.js';
-import { parseCV, serializeCV, normalizeModel } from './cv-model.js';
+import { analyzeCV, exampleCV } from './analyzer.js?v=4.0.1';
+import { checkWriting, clearWriting } from './writing.js?v=4.0.1';
+import { readCVFile } from './pdf-reader.js?v=4.0.1';
+import { parseCV, serializeCV, normalizeModel } from './cv-model.js?v=4.0.1';
 
 const $ = id => document.getElementById(id);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -287,7 +287,7 @@ async function regenerate() {
   $('download-pdf').disabled = true;
   busy(true, 'A preparar a nova versão…');
   try {
-    const { createCVPdf } = await import('./pdf-export.js');
+    const { createCVPdf } = await import('./pdf-export.js?v=4.0.1');
     const pdf = await createCVPdf(model, { template });
     if (version !== state.version) return;
     const imported = await readCVFile(new File([pdf.bytes], pdf.filename, { type: 'application/pdf' }));

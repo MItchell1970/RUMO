@@ -419,7 +419,7 @@ export async function readCVFile(file) {
   const deadline = Date.now() + READ_TIMEOUT_MS;
   try {
     if (/\.docx$/i.test(file.name)) {
-      const { extractDocxText } = await withDeadline(import('./docx-reader.js'), deadline);
+      const { extractDocxText } = await withDeadline(import('./docx-reader.js?v=4.0.1'), deadline);
       const bytes = new Uint8Array(await withDeadline(file.arrayBuffer(), deadline));
       try { return { text: cleanText(extractDocxText(bytes)), metadata: null, name: file.name, kind: 'docx' }; }
       catch (error) { throw problem(error.message || 'Não foi possível ler este DOCX.'); }
