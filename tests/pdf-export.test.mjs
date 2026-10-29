@@ -9,6 +9,7 @@ import { analyzeCV } from '../dist/analyzer.js';
 // performed separately with a real renderer; this shim does not paint a page.
 globalThis.DOMMatrix ||= class DOMMatrix {};
 globalThis.Path2D ||= class Path2D {};
+Promise.try ||= function (callback, ...args) { return new Promise(resolve => resolve(callback(...args))); };
 Uint8Array.prototype.toHex ||= function () { return Buffer.from(this).toString('hex'); };
 Map.prototype.getOrInsertComputed ||= function (key, create) { if (!this.has(key)) this.set(key, create(key)); return this.get(key); };
 const readExport = result => readCVFile({ name: result.filename, size: result.bytes.length, arrayBuffer: async () => result.bytes.slice().buffer });
